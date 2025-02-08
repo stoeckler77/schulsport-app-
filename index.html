@@ -65,14 +65,83 @@
             border: none;
             border-radius: 5px;
         }
+
+        .chat-container {
+            width: 80%;
+            max-width: 600px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .chat-message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .user-message {
+            background: #e3f2fd;
+            margin-left: 20%;
+            text-align: right;
+        }
+
+        .parrot-message {
+            background: #f5f5f5;
+            margin-right: 20%;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            margin: 20px auto;
+            width: 80%;
+            max-width: 600px;
+        }
+
+        #textInput {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        #sendButton {
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #sendButton:hover {
+            background: #45a049;
+        }
     </style>
 </head>
 <body>
     <div class="parrot-container">
         <img src="./parrot.png" class="parrot" alt="Parrot" onerror="console.error('Failed to load image:', this.src)">
     </div>
+
+    <div class="chat-container" id="chatHistory">
+        <!-- Chat messages will be added here -->
+    </div>
+
+    <div class="input-container">
+        <input type="text" id="textInput" placeholder="Type your message...">
+        <button id="sendButton">Send</button>
+    </div>
+
     <div id="controls">
         <button id="startButton">Talk to Polly!</button>
+        <button id="languageButton">🇩🇪 Deutsch / English 🇬🇧</button>
         <div id="status">Click the button and allow microphone access to talk!</div>
     </div>
 
@@ -118,11 +187,8 @@
         let currentLanguage = 'en'; // default to English
 
         // Add language toggle button to controls
-        const languageButton = document.createElement('button');
-        languageButton.textContent = '🇩🇪 Deutsch / English 🇬🇧';
-        languageButton.style.marginLeft = '10px';
+        const languageButton = document.getElementById('languageButton');
         languageButton.onclick = toggleLanguage;
-        document.getElementById('controls').appendChild(languageButton);
 
         function toggleLanguage() {
             currentLanguage = currentLanguage === 'en' ? 'de' : 'en';
@@ -185,19 +251,14 @@
 
         recognition.onresult = async (event) => {
             const text = event.results[0][0].transcript;
-            statusDiv.textContent = currentLanguage === 'en' ? 
-                "You said: " + text :
-                "Du sagtest: " + text;
+            addMessageToChat(text, true);
             
-            statusDiv.textContent += currentLanguage === 'en' ? 
-                "\nThinking..." :
-                "\nIch denke nach...";
-
             const response = await getAIResponse(text);
-            
             const parrotResponse = parrotifyText(response);
-            const utterance = new SpeechSynthesisUtterance(parrotResponse);
             
+            addMessageToChat(parrotResponse, false);
+            
+            const utterance = new SpeechSynthesisUtterance(parrotResponse);
             const voice = await getParrotVoice();
             utterance.voice = voice;
             utterance.lang = currentLanguage === 'en' ? 'en-US' : 'de-DE';
@@ -271,6 +332,58 @@
                 }
             });
         }
+
+        function addMessageToChat(text, isUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${isUser ? 'user-message' : 'parrot-message'}`;
+            messageDiv.textContent = isUser ? `You: ${text}` : `Polly: ${text}`;
+            
+            const chatHistory = document.getElementById('chatHistory');
+            chatHistory.appendChild(messageDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        async function handleTextInput(text) {
+            addMessageToChat(text, true);
+            
+            const response = await getAIResponse(text);
+            const parrotResponse = parrotifyText(response);
+            
+            addMessageToChat(parrotResponse, false);
+            
+            const utterance = new SpeechSynthesisUtterance(parrotResponse);
+            const voice = await getParrotVoice();
+            utterance.voice = voice;
+            utterance.lang = currentLanguage === 'en' ? 'en-US' : 'de-DE';
+            utterance.pitch = 1.5;
+            utterance.rate = 1.1;
+            utterance.volume = 1.0;
+            
+            utterance.onstart = startTalking;
+            utterance.onend = stopTalking;
+            
+            synth.speak(utterance);
+        }
+
+        // Add event listeners for text input
+        document.getElementById('textInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const text = e.target.value.trim();
+                if (text) {
+                    handleTextInput(text);
+                    e.target.value = '';
+                }
+            }
+        });
+
+        document.getElementById('sendButton').addEventListener('click', () => {
+            const textInput = document.getElementById('textInput');
+            const text = textInput.value.trim();
+            if (text) {
+                handleTextInput(text);
+                textInput.value = '';
+            }
+        });
     </script>
 </body>
 </html> 
