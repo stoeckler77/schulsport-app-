@@ -144,6 +144,28 @@
         startButton.addEventListener('click', () => {
             recognition.start();
         });
+
+        // Remove the API key and update the getAIResponse function
+        async function getAIResponse(text) {
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: text
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.error) throw new Error(data.error);
+                return data.response;
+            } catch (error) {
+                console.error('AI Error:', error);
+                return "Squawk! Sorry, my brain is a bit fuzzy right now!";
+            }
+        }
     </script>
 </body>
 </html> 
