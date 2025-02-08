@@ -1,5 +1,5 @@
 {
-  "name": "project0",
+  "name": "parrot",
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
@@ -17,10 +17,10 @@
     "url": "https://github.com/stoeckler77/parrot/issues"
   },
   "homepage": "https://github.com/stoeckler77/parrot#readme",
-  "description": "",
   "dependencies": {
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "node-fetch": "^3.3.2"
-  }
+    "express": "^4.17.1",
+    "node-fetch": "^2.6.1",
+    "dotenv": "^10.0.0"
+  },
+  "description": ""
 }
