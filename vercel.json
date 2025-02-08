@@ -19,8 +19,5 @@
             "src": "/(.*)",
             "dest": "/$1"
         }
-    ],
-    "env": {
-        "HUGGING_FACE_API_KEY": "@hugging-face-api-key"
-    }
+    ]
 } 
