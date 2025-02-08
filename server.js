@@ -32,7 +32,12 @@ app.post('/api/chat', async (req, res) => {
             throw new Error('API key not configured');
         }
 
-        const response = await fetch('https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill', {
+        // Use different model based on language
+        const model = req.body.language === 'de' ?
+            'facebook/blenderbot-1B-distill' :  // or another model that handles German well
+            'facebook/blenderbot-400M-distill';
+
+        const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${process.env.HUGGING_FACE_API_KEY}`,
@@ -40,7 +45,10 @@ app.post('/api/chat', async (req, res) => {
             },
             body: JSON.stringify({
                 inputs: req.body.message,
-                options: { wait_for_model: true }
+                options: { 
+                    wait_for_model: true,
+                    language: req.body.language
+                }
             })
         });
         

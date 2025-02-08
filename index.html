@@ -114,85 +114,65 @@
             parrotContainer.classList.remove('talking');
         }
 
-        // Parrot responses
-        const responses = {
-            "hello": ["Hello! Nice to meet you!", "Hi there! How are you?"],
-            "how are you": ["I'm doing great! Thanks for asking!", "Wonderful! How about you?"],
-            "what's your name": ["I'm Polly, the talking parrot!", "My name is Polly!"],
-            "bye": ["Goodbye! Come back soon!", "See you later!"]
-        };
+        // Language selection
+        let currentLanguage = 'en'; // default to English
 
-        function getResponse(input) {
-            input = input.toLowerCase();
-            for (let key in responses) {
-                if (input.includes(key)) {
-                    const options = responses[key];
-                    return options[Math.floor(Math.random() * options.length)];
-                }
-            }
-            return "Polly wants a cracker! Try saying hello!";
+        // Add language toggle button to controls
+        const languageButton = document.createElement('button');
+        languageButton.textContent = '🇩🇪 Deutsch / English 🇬🇧';
+        languageButton.style.marginLeft = '10px';
+        languageButton.onclick = toggleLanguage;
+        document.getElementById('controls').appendChild(languageButton);
+
+        function toggleLanguage() {
+            currentLanguage = currentLanguage === 'en' ? 'de' : 'en';
+            statusDiv.textContent = currentLanguage === 'en' ? 
+                "Click the button and allow microphone access to talk!" :
+                "Klicke den Button und erlaube den Mikrofonzugriff!";
+            recognition.lang = currentLanguage === 'en' ? 'en-US' : 'de-DE';
         }
 
-        async function getAIResponse(text) {
-            try {
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        message: text
-                    })
-                });
-                
-                const data = await response.json();
-                if (data.error) throw new Error(data.error);
-                return data.response;
-            } catch (error) {
-                console.error('AI Error:', error);
-                return "Squawk! Sorry, my brain is a bit fuzzy right now!";
-            }
-        }
-
-        // Parrot voice configuration
-        function getParrotVoice() {
-            return new Promise(resolve => {
-                let voices = synth.getVoices();
-                if (voices.length) {
-                    resolve(selectVoice(voices));
-                } else {
-                    synth.onvoiceschanged = () => {
-                        voices = synth.getVoices();
-                        resolve(selectVoice(voices));
-                    };
-                }
-            });
-        }
-
-        function selectVoice(voices) {
-            // Prefer high-pitched voices
-            return voices.find(voice => voice.name.includes('Female')) || 
-                   voices.find(voice => voice.name.includes('Google')) ||
-                   voices[0];
-        }
-
-        // Parrot-ify the text
-        function parrotifyText(text) {
-            const parrotPhrases = [
+        // Bilingual parrot phrases
+        const parrotPhrases = {
+            en: [
                 "*SQUAWK* ",
                 "*SCREECH* ",
                 "Polly wants a cracker! ",
                 "Pretty bird! "
-            ];
-            
-            // Add random parrot sounds
-            const prefix = parrotPhrases[Math.floor(Math.random() * parrotPhrases.length)];
+            ],
+            de: [
+                "*KRÄCHZ* ",
+                "*SQUAWK* ",
+                "Polly möchte einen Keks! ",
+                "Schöner Vogel! ",
+                "Lecker! "
+            ]
+        };
+
+        function selectVoice(voices) {
+            // Select appropriate voice based on language
+            if (currentLanguage === 'de') {
+                return voices.find(voice => voice.lang.includes('de')) || 
+                       voices.find(voice => voice.name.includes('Deutsch')) ||
+                       voices.find(voice => voice.name.includes('German')) ||
+                       voices[0];
+            }
+            return voices.find(voice => voice.lang.includes('en')) || 
+                   voices.find(voice => voice.name.includes('English')) ||
+                   voices[0];
+        }
+
+        function parrotifyText(text) {
+            const phrases = parrotPhrases[currentLanguage];
+            const prefix = phrases[Math.floor(Math.random() * phrases.length)];
             
             // Add parrot-like repetition sometimes
             if (Math.random() < 0.3) {
                 const words = text.split(' ');
                 const wordToRepeat = words[Math.floor(Math.random() * words.length)];
-                text += ` ${wordToRepeat}! ${wordToRepeat}!`;
+                text += currentLanguage === 'en' ? 
+                    ` ${wordToRepeat}! ${wordToRepeat}!` :
+                    ` ${wordToRepeat}! Ja, ${wordToRepeat}!`;
             }
 
             return prefix + text;
@@ -205,27 +185,33 @@
 
         recognition.onresult = async (event) => {
             const text = event.results[0][0].transcript;
-            statusDiv.textContent = "You said: " + text;
+            statusDiv.textContent = currentLanguage === 'en' ? 
+                "You said: " + text :
+                "Du sagtest: " + text;
             
-            statusDiv.textContent += "\nThinking...";
+            statusDiv.textContent += currentLanguage === 'en' ? 
+                "\nThinking..." :
+                "\nIch denke nach...";
+
             const response = await getAIResponse(text);
             
-            // Create and configure utterance with parrot voice
             const parrotResponse = parrotifyText(response);
             const utterance = new SpeechSynthesisUtterance(parrotResponse);
             
-            // Configure voice to sound more parrot-like
             const voice = await getParrotVoice();
             utterance.voice = voice;
-            utterance.pitch = 1.5;     // Higher pitch
-            utterance.rate = 1.1;      // Slightly faster
-            utterance.volume = 1.0;    // Full volume
+            utterance.lang = currentLanguage === 'en' ? 'en-US' : 'de-DE';
+            utterance.pitch = 1.5;
+            utterance.rate = 1.1;
+            utterance.volume = 1.0;
             
             utterance.onstart = startTalking;
             utterance.onend = () => {
                 stopTalking();
                 startButton.disabled = false;
-                statusDiv.textContent = "Polly wants to talk more! Click to speak again!";
+                statusDiv.textContent = currentLanguage === 'en' ?
+                    "Polly wants to talk more! Click to speak again!" :
+                    "Polly möchte mehr reden! Klicke zum Weitersprechen!";
             };
             
             synth.speak(utterance);
@@ -246,6 +232,45 @@
         startButton.addEventListener('click', () => {
             recognition.start();
         });
+
+        async function getAIResponse(text) {
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: text,
+                        language: currentLanguage
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.error) throw new Error(data.error);
+                return data.response;
+            } catch (error) {
+                console.error('AI Error:', error);
+                return currentLanguage === 'en' ?
+                    "Squawk! Sorry, my brain is a bit fuzzy right now!" :
+                    "Krächz! Tut mir leid, mein Gehirn ist gerade etwas durcheinander!";
+            }
+        }
+
+        // Parrot voice configuration
+        function getParrotVoice() {
+            return new Promise(resolve => {
+                let voices = synth.getVoices();
+                if (voices.length) {
+                    resolve(selectVoice(voices));
+                } else {
+                    synth.onvoiceschanged = () => {
+                        voices = synth.getVoices();
+                        resolve(selectVoice(voices));
+                    };
+                }
+            });
+        }
     </script>
 </body>
 </html> 
