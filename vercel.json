@@ -8,19 +8,24 @@
         {
             "src": "*.html",
             "use": "@vercel/static"
+        },
+        {
+            "src": "*.png",
+            "use": "@vercel/static"
         }
     ],
     "routes": [
         {
             "src": "/api/(.*)",
-            "dest": "/server.js"
+            "dest": "server.js"
         },
         {
-            "handle": "filesystem"
+            "src": "/",
+            "dest": "index.html"
         },
         {
-            "src": "/(.*)",
-            "dest": "/"
+            "src": "/(.+)",
+            "dest": "/$1"
         }
     ]
 } 
