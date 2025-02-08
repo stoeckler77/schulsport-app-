@@ -4,15 +4,28 @@ const path = require('path');
 require('dotenv').config();
 
 const app = express();
-app.use(express.json());
-app.use(express.static(path.join(__dirname)));
 
-// Serve index.html for the root route
+// Middleware
+app.use(express.json());
+app.use(express.static(__dirname));
+
+// Debug logging
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.path}`);
+    next();
+});
+
+// Serve index.html
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Add error handling for the chat endpoint
+// Serve parrot.png explicitly
+app.get('/parrot.png', (req, res) => {
+    res.sendFile(path.join(__dirname, 'parrot.png'));
+});
+
+// Chat endpoint
 app.post('/api/chat', async (req, res) => {
     try {
         if (!process.env.HUGGING_FACE_API_KEY) {
@@ -31,6 +44,10 @@ app.post('/api/chat', async (req, res) => {
             })
         });
         
+        if (!response.ok) {
+            throw new Error(`API responded with status ${response.status}`);
+        }
+
         const data = await response.json();
         res.json({ response: data[0].generated_text });
     } catch (error) {
@@ -42,7 +59,16 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
+// Error handling
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ error: 'Something broke!', details: err.message });
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    console.log('Environment variables loaded:', {
+        hasApiKey: !!process.env.HUGGING_FACE_API_KEY
+    });
 }); 
