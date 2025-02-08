@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .parrot-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+        }
+
+        .parrot-part {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .beak {
+            animation: beakMove 0.3s infinite;
+            transform-origin: top;
+        }
+
+        .head {
+            animation: headTilt 2s infinite;
+            transform-origin: bottom center;
+        }
+
+        .eyes {
+            animation: blink 4s infinite;
+        }
+
+        @keyframes beakMove {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(-2deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        @keyframes headTilt {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(5deg); }
+            75% { transform: rotate(-5deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        @keyframes blink {
+            0%, 96% { opacity: 1; }
+            98% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        /* Animation states */
+        .talking .beak {
+            animation-duration: 0.15s;
+        }
+
+        .listening .head {
+            animation: headTilt 1s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="parrot-container">
+        <img src="parrot-body.png" class="parrot-part body" alt="Parrot body">
+        <img src="parrot-head.png" class="parrot-part head" alt="Parrot head">
+        <img src="parrot-beak.png" class="parrot-part beak" alt="Parrot beak">
+        <img src="parrot-eyes.png" class="parrot-part eyes" alt="Parrot eyes">
+    </div>
+
+    <script>
+        const parrotContainer = document.querySelector('.parrot-container');
+
+        // Function to make parrot talk
+        function startTalking() {
+            parrotContainer.classList.add('talking');
+            parrotContainer.classList.remove('listening');
+        }
+
+        // Function to make parrot listen
+        function startListening() {
+            parrotContainer.classList.add('listening');
+            parrotContainer.classList.remove('talking');
+        }
+
+        // Function to reset parrot state
+        function resetParrot() {
+            parrotContainer.classList.remove('talking', 'listening');
+        }
+
+        if ('webkitSpeechRecognition' in window) {
+            const recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onstart = function() {
+                startListening();
+            };
+
+            recognition.onresult = function(event) {
+                const text = event.results[0][0].transcript;
+                console.log('You said: ' + text);
+                startTalking();
+                
+                // Use Speech Synthesis to make parrot respond
+                const speech = new SpeechSynthesisUtterance();
+                speech.text = "Hello! You said: " + text;
+                speech.onstart = startTalking;
+                speech.onend = resetParrot;
+                window.speechSynthesis.speak(speech);
+            };
+
+            recognition.onend = function() {
+                resetParrot();
+            };
+
+            // Add button to start listening
+            const button = document.createElement('button');
+            button.textContent = 'Talk to Parrot';
+            button.onclick = () => recognition.start();
+            document.body.appendChild(button);
+        }
+    </script>
+</body>
+</html> 
