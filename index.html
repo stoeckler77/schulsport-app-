@@ -31,11 +31,119 @@
             75% { transform: rotate(-5deg); }
             100% { transform: rotate(0deg); }
         }
+
+        .talking .parrot {
+            animation: quickTilt 0.2s infinite;
+        }
+
+        @keyframes quickTilt {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(3deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <div class="parrot-container">
         <img src="/parrot.png" class="parrot" alt="Parrot">
     </div>
+    <div id="controls">
+        <button id="startButton">Start Listening</button>
+        <div id="status"></div>
+    </div>
+
+    <script>
+        const parrotContainer = document.querySelector('.parrot-container');
+        const startButton = document.getElementById('startButton');
+        const statusDiv = document.getElementById('status');
+
+        // Initialize speech recognition
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        // Initialize speech synthesis
+        const synth = window.speechSynthesis;
+
+        function startTalking() {
+            parrotContainer.classList.add('talking');
+        }
+
+        function stopTalking() {
+            parrotContainer.classList.remove('talking');
+        }
+
+        // Parrot responses
+        const responses = {
+            "hello": ["Hello! Nice to meet you!", "Hi there! How are you?"],
+            "how are you": ["I'm doing great! Thanks for asking!", "Wonderful! How about you?"],
+            "what's your name": ["I'm Polly, the talking parrot!", "My name is Polly!"],
+            "bye": ["Goodbye! Come back soon!", "See you later!"]
+        };
+
+        function getResponse(input) {
+            input = input.toLowerCase();
+            for (let key in responses) {
+                if (input.includes(key)) {
+                    const options = responses[key];
+                    return options[Math.floor(Math.random() * options.length)];
+                }
+            }
+            return "Polly wants a cracker! Try saying hello!";
+        }
+
+        recognition.onstart = () => {
+            statusDiv.textContent = "Listening...";
+            startButton.disabled = true;
+        };
+
+        recognition.onresult = (event) => {
+            const text = event.results[0][0].transcript;
+            statusDiv.textContent = "You said: " + text;
+            
+            // Get and speak response
+            const response = getResponse(text);
+            const utterance = new SpeechSynthesisUtterance(response);
+            
+            utterance.onstart = startTalking;
+            utterance.onend = () => {
+                stopTalking();
+                startButton.disabled = false;
+                statusDiv.textContent = "";
+            };
+            
+            synth.speak(utterance);
+        };
+
+        recognition.onerror = (event) => {
+            statusDiv.textContent = "Error occurred in recognition: " + event.error;
+            startButton.disabled = false;
+        };
+
+        recognition.onend = () => {
+            if (!synth.speaking) {
+                startButton.disabled = false;
+                statusDiv.textContent = "";
+            }
+        };
+
+        startButton.addEventListener('click', () => {
+            recognition.start();
+        });
+    </script>
 </body>
 </html> 
