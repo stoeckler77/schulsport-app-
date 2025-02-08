@@ -12,16 +12,17 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Store API key in environment variable
-const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
-const API_URL = 'https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill';
-
+// Add error handling for the chat endpoint
 app.post('/api/chat', async (req, res) => {
     try {
-        const response = await fetch(API_URL, {
+        if (!process.env.HUGGING_FACE_API_KEY) {
+            throw new Error('API key not configured');
+        }
+
+        const response = await fetch('https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${HUGGING_FACE_API_KEY}`,
+                'Authorization': `Bearer ${process.env.HUGGING_FACE_API_KEY}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
@@ -33,8 +34,11 @@ app.post('/api/chat', async (req, res) => {
         const data = await response.json();
         res.json({ response: data[0].generated_text });
     } catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ error: 'An error occurred' });
+        console.error('Server Error:', error);
+        res.status(500).json({ 
+            error: 'An error occurred', 
+            details: error.message 
+        });
     }
 });
 
