@@ -154,6 +154,50 @@
             }
         }
 
+        // Parrot voice configuration
+        function getParrotVoice() {
+            return new Promise(resolve => {
+                let voices = synth.getVoices();
+                if (voices.length) {
+                    resolve(selectVoice(voices));
+                } else {
+                    synth.onvoiceschanged = () => {
+                        voices = synth.getVoices();
+                        resolve(selectVoice(voices));
+                    };
+                }
+            });
+        }
+
+        function selectVoice(voices) {
+            // Prefer high-pitched voices
+            return voices.find(voice => voice.name.includes('Female')) || 
+                   voices.find(voice => voice.name.includes('Google')) ||
+                   voices[0];
+        }
+
+        // Parrot-ify the text
+        function parrotifyText(text) {
+            const parrotPhrases = [
+                "*SQUAWK* ",
+                "*SCREECH* ",
+                "Polly wants a cracker! ",
+                "Pretty bird! "
+            ];
+            
+            // Add random parrot sounds
+            const prefix = parrotPhrases[Math.floor(Math.random() * parrotPhrases.length)];
+            
+            // Add parrot-like repetition sometimes
+            if (Math.random() < 0.3) {
+                const words = text.split(' ');
+                const wordToRepeat = words[Math.floor(Math.random() * words.length)];
+                text += ` ${wordToRepeat}! ${wordToRepeat}!`;
+            }
+
+            return prefix + text;
+        }
+
         recognition.onstart = () => {
             statusDiv.textContent = "Listening...";
             startButton.disabled = true;
@@ -166,12 +210,22 @@
             statusDiv.textContent += "\nThinking...";
             const response = await getAIResponse(text);
             
-            const utterance = new SpeechSynthesisUtterance(response);
+            // Create and configure utterance with parrot voice
+            const parrotResponse = parrotifyText(response);
+            const utterance = new SpeechSynthesisUtterance(parrotResponse);
+            
+            // Configure voice to sound more parrot-like
+            const voice = await getParrotVoice();
+            utterance.voice = voice;
+            utterance.pitch = 1.5;     // Higher pitch
+            utterance.rate = 1.1;      // Slightly faster
+            utterance.volume = 1.0;    // Full volume
+            
             utterance.onstart = startTalking;
             utterance.onend = () => {
                 stopTalking();
                 startButton.disabled = false;
-                statusDiv.textContent = "Click to talk again!";
+                statusDiv.textContent = "Polly wants to talk more! Click to speak again!";
             };
             
             synth.speak(utterance);
