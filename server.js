@@ -1,10 +1,16 @@
 const express = require('express');
 const fetch = require('node-fetch');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
 app.use(express.json());
-app.use(express.static('.')); // Serve static files
+app.use(express.static(path.join(__dirname)));
+
+// Serve index.html for the root route
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // Store API key in environment variable
 const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
