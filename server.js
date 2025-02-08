@@ -25,6 +25,12 @@ app.get('/parrot.png', (req, res) => {
     res.sendFile(path.join(__dirname, 'parrot.png'));
 });
 
+// Add model information
+const MODEL_INFO = {
+    name: 'deepseek-ai/deepseek-chat-instruct',
+    version: '1.0'
+};
+
 // Chat endpoint
 app.post('/api/chat', async (req, res) => {
     try {
@@ -32,22 +38,21 @@ app.post('/api/chat', async (req, res) => {
             throw new Error('API key not configured');
         }
 
-        // Use different model based on language
-        const model = req.body.language === 'de' ?
-            'facebook/blenderbot-1B-distill' :  // or another model that handles German well
-            'facebook/blenderbot-400M-distill';
+        console.log('Using model:', MODEL_INFO.name);
+        console.log('Input message:', req.body.message);
 
-        const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+        const response = await fetch(`https://api-inference.huggingface.co/models/${MODEL_INFO.name}`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${process.env.HUGGING_FACE_API_KEY}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                inputs: req.body.message,
+                inputs: `${req.body.language === 'de' ? 'Antworte auf Deutsch: ' : ''}${req.body.message}`,
                 options: { 
                     wait_for_model: true,
-                    language: req.body.language
+                    max_length: 100,
+                    temperature: 0.7
                 }
             })
         });
@@ -57,14 +62,24 @@ app.post('/api/chat', async (req, res) => {
         }
 
         const data = await response.json();
-        res.json({ response: data[0].generated_text });
+        console.log('Model response:', data);
+
+        res.json({ 
+            response: data[0].generated_text,
+            model: MODEL_INFO.name
+        });
     } catch (error) {
         console.error('Server Error:', error);
         res.status(500).json({ 
             error: 'An error occurred', 
-            details: error.message 
+            details: error.message,
+            model: MODEL_INFO.name
         });
     }
+});
+
+app.get('/api/model-info', (req, res) => {
+    res.json(MODEL_INFO);
 });
 
 // Error handling
@@ -76,7 +91,5 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
-    console.log('Environment variables loaded:', {
-        hasApiKey: !!process.env.HUGGING_FACE_API_KEY
-    });
+    console.log('Using AI Model:', MODEL_INFO.name);
 }); 
