@@ -22,53 +22,36 @@ app.post('/api/chat', async (req, res) => {
             throw new Error('API key is missing');
         }
 
-        // Using a different, more reliable model
-        const response = await fetch('https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium', {
+        // Changed the model and request format
+        const response = await fetch('https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${apiKey}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                inputs: {
-                    text: req.body.message
-                },
-                parameters: {
-                    max_length: 50,
-                    temperature: 0.7,
-                    top_p: 0.9,
-                    do_sample: true
-                }
+                inputs: req.body.message
             })
         });
 
-        console.log('API Response Status:', response.status);
-        
         if (!response.ok) {
-            throw new Error(`API returned status ${response.status}`);
+            const errorText = await response.text();
+            console.error('API Error:', errorText);
+            throw new Error(`API error: ${response.status}`);
         }
 
         const data = await response.json();
-        console.log('API Response Data:', data);
+        console.log('API Response:', data);
 
-        // Extract the response text
-        const aiResponse = data[0]?.generated_text || data?.generated_text || "Squawk! That's interesting!";
-        
         res.json({ 
-            response: aiResponse,
-            status: 'success'
+            response: data[0].generated_text || "Squawk! That's interesting!"
         });
 
     } catch (error) {
-        console.error('Error:', error);
-        
-        // Use backup response if API fails
-        const backupResponse = backupResponses[Math.floor(Math.random() * backupResponses.length)];
-        
-        res.json({ 
-            response: backupResponse,
-            status: 'using backup',
-            error: error.message
+        console.error('Full error:', error);
+        res.status(500).json({ 
+            error: 'Error communicating with AI',
+            details: error.message
         });
     }
 });
