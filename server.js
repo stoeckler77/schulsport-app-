@@ -7,15 +7,22 @@ const app = express();
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// Available models
+// Available models with descriptions
 const MODELS = {
     blenderbot: {
         name: 'facebook/blenderbot-400M-distill',
-        displayName: 'BlenderBot'
+        displayName: 'BlenderBot',
+        description: 'Friendly chatbot good at casual conversation'
     },
     deepseek: {
         name: 'deepseek-ai/deepseek-chat-instruct',
-        displayName: 'DeepSeek'
+        displayName: 'DeepSeek Chat',
+        description: 'Advanced model for detailed conversations'
+    },
+    deepseekR1: {
+        name: 'deepseek-ai/DeepSeek-R1',
+        displayName: 'DeepSeek R1',
+        description: 'Latest DeepSeek model with enhanced capabilities'
     }
 };
 
@@ -57,7 +64,10 @@ app.post('/api/chat', async (req, res) => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    inputs: req.body.message
+                    inputs: req.body.message,
+                    options: {
+                        wait_for_model: true
+                    }
                 })
             }
         );
@@ -73,7 +83,8 @@ app.post('/api/chat', async (req, res) => {
 
         res.json({ 
             response: parrotResponse,
-            model: selectedModel.displayName
+            model: selectedModel.displayName,
+            description: selectedModel.description
         });
 
     } catch (error) {

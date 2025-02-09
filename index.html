@@ -138,13 +138,20 @@
                 <!-- Chat messages will appear here -->
             </div>
             
-            <div style="margin-bottom: 10px;">
-                <label for="modelSelect">Polly's Brain: </label>
-                <select id="modelSelect">
-                    <option value="blenderbot">BlenderBot</option>
-                    <option value="deepseek">DeepSeek</option>
-                </select>
-                <span id="currentModel"></span>
+            <div style="margin-bottom: 20px; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                <div style="margin-bottom: 10px;">
+                    <label for="modelSelect" style="font-weight: bold;">Polly's Brain: </label>
+                    <select id="modelSelect" style="padding: 5px; margin-left: 10px; border-radius: 5px;">
+                        <option value="blenderbot">BlenderBot</option>
+                        <option value="deepseek">DeepSeek Chat</option>
+                        <option value="deepseekR1">DeepSeek R1</option>
+                    </select>
+                </div>
+                <div id="modelInfo" style="font-size: 0.9em; color: #666;">
+                    <span id="currentModel"></span>
+                    <br>
+                    <span id="modelDescription"></span>
+                </div>
             </div>
             
             <div class="input-container">
@@ -167,6 +174,7 @@
         const statusDiv = document.getElementById('status');
         const modelSelect = document.getElementById('modelSelect');
         const currentModel = document.getElementById('currentModel');
+        const modelDescription = document.getElementById('modelDescription');
 
         // Initialize speech synthesis
         const synth = window.speechSynthesis;
@@ -206,7 +214,8 @@
                 
                 const data = await response.json();
                 addMessageToChat(data.response, false);
-                currentModel.textContent = `Using: ${data.model}`;
+                currentModel.textContent = `Current Model: ${data.model}`;
+                modelDescription.textContent = data.description || '';
             } catch (error) {
                 console.error('Error:', error);
                 addMessageToChat("Squawk! Something went wrong!", false);
