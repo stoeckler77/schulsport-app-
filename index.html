@@ -157,13 +157,24 @@
         const startButton = document.getElementById('startButton');
         const statusDiv = document.getElementById('status');
 
-        // Add message to chat history
+        // Initialize speech synthesis
+        const synth = window.speechSynthesis;
+
+        // Add message to chat history and speak it
         function addMessageToChat(text, isUser) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `chat-message ${isUser ? 'user-message' : 'parrot-message'}`;
             messageDiv.textContent = isUser ? `You: ${text}` : `Polly: ${text}`;
             chatHistory.appendChild(messageDiv);
             chatHistory.scrollTop = chatHistory.scrollHeight;
+
+            // Speak Polly's messages
+            if (!isUser && synth) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.pitch = 1.5;  // Higher pitch for parrot voice
+                utterance.rate = 1.1;   // Slightly faster
+                synth.speak(utterance);
+            }
         }
 
         // Handle sending messages
