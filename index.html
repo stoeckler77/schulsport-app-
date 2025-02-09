@@ -187,7 +187,7 @@
             }
         }
 
-        // Event listeners
+        // Event listeners for text input
         sendButton.addEventListener('click', () => {
             const text = textInput.value.trim();
             if (text) {
@@ -206,24 +206,46 @@
             }
         });
 
-        // Speech recognition setup
-        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        recognition.continuous = false;
-        recognition.interimResults = false;
+        // Speech recognition with error handling
+        try {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                const recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
 
-        recognition.onresult = (event) => {
-            const text = event.results[0][0].transcript;
-            sendMessage(text);
-        };
+                recognition.onresult = (event) => {
+                    const text = event.results[0][0].transcript;
+                    sendMessage(text);
+                };
 
-        startButton.addEventListener('click', () => {
-            recognition.start();
-            statusDiv.textContent = "Listening...";
-        });
+                startButton.addEventListener('click', () => {
+                    try {
+                        recognition.start();
+                        statusDiv.textContent = "Listening...";
+                    } catch (error) {
+                        console.error('Speech recognition error:', error);
+                        statusDiv.textContent = "Speech recognition not available. Please type instead.";
+                    }
+                });
 
-        recognition.onend = () => {
-            statusDiv.textContent = "Click to speak again!";
-        };
+                recognition.onend = () => {
+                    statusDiv.textContent = "Click to speak again!";
+                };
+
+                recognition.onerror = (event) => {
+                    console.error('Speech recognition error:', event.error);
+                    statusDiv.textContent = "Speech recognition error. Please type instead.";
+                };
+            } else {
+                startButton.style.display = 'none';
+                statusDiv.textContent = "Speech recognition not supported in this browser. Please type instead.";
+            }
+        } catch (error) {
+            console.error('Speech recognition setup error:', error);
+            startButton.style.display = 'none';
+            statusDiv.textContent = "Speech recognition not available. Please type instead.";
+        }
     </script>
 </body>
 </html> 
