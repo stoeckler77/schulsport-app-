@@ -128,6 +128,38 @@
             height: 100%;
             object-fit: contain;
         }
+
+        /* Add model info styles */
+        .model-info {
+            position: fixed;
+            bottom: 230px; /* Position above Polly image */
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+            z-index: 1000;
+            border: 1px solid #e0e0e0;
+        }
+
+        .model-name {
+            color: #2196F3;
+            font-weight: bold;
+        }
+
+        .model-badge {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            margin-left: 5px;
+        }
     </style>
 </head>
 <body>
@@ -156,7 +188,13 @@
         </div>
     </div>
 
-    <!-- Centered Polly image with correct filename -->
+    <!-- Add model info -->
+    <div class="model-info">
+        Powered by <span class="model-name">Zephyr-7B</span>
+        <span class="model-badge">AI</span>
+    </div>
+
+    <!-- Centered Polly image -->
     <div class="polly-container">
         <img src="parrot.png" alt="Polly the Parrot" class="polly-image">
     </div>
