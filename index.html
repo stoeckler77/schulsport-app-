@@ -138,21 +138,6 @@
                 <!-- Chat messages will appear here -->
             </div>
             
-            <div style="margin-bottom: 20px; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                <div style="margin-bottom: 10px;">
-                    <label for="modelSelect" style="font-weight: bold;">Polly's Brain: </label>
-                    <select id="modelSelect" style="padding: 5px; margin-left: 10px; border-radius: 5px;">
-                        <option value="local">Polly Basic</option>
-                        <option value="gpt2">GPT-2</option>
-                    </select>
-                </div>
-                <div id="modelInfo" style="font-size: 0.9em; color: #666;">
-                    <span id="currentModel"></span>
-                    <br>
-                    <span id="modelDescription"></span>
-                </div>
-            </div>
-            
             <div class="input-container">
                 <input type="text" id="textInput" placeholder="Type your message...">
                 <button id="sendButton">Send</button>
@@ -171,9 +156,6 @@
         const sendButton = document.getElementById('sendButton');
         const startButton = document.getElementById('startButton');
         const statusDiv = document.getElementById('status');
-        const modelSelect = document.getElementById('modelSelect');
-        const currentModel = document.getElementById('currentModel');
-        const modelDescription = document.getElementById('modelDescription');
 
         // Initialize speech synthesis
         const synth = window.speechSynthesis;
@@ -206,15 +188,12 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({ 
-                        message: text,
-                        model: modelSelect.value
+                        message: text
                     })
                 });
                 
                 const data = await response.json();
                 addMessageToChat(data.response, false);
-                currentModel.textContent = `Current Model: ${data.model}`;
-                modelDescription.textContent = data.description || '';
             } catch (error) {
                 console.error('Error:', error);
                 addMessageToChat("Squawk! Something went wrong!", false);
