@@ -14,15 +14,15 @@ const MODELS = {
         displayName: 'BlenderBot',
         description: 'Friendly chatbot good at casual conversation'
     },
-    deepseek: {
-        name: 'deepseek-ai/deepseek-chat-instruct',
-        displayName: 'DeepSeek Chat',
-        description: 'Advanced model for detailed conversations'
+    gpt2: {
+        name: 'gpt2',
+        displayName: 'GPT-2',
+        description: 'Classic language model good at general text generation'
     },
-    deepseekR1: {
-        name: 'deepseek-ai/DeepSeek-R1',
-        displayName: 'DeepSeek R1',
-        description: 'Latest DeepSeek model with enhanced capabilities'
+    dialogpt: {
+        name: 'microsoft/DialoGPT-medium',
+        displayName: 'DialoGPT',
+        description: 'Microsoft\'s model optimized for dialogue'
     }
 };
 
@@ -65,8 +65,10 @@ app.post('/api/chat', async (req, res) => {
                 },
                 body: JSON.stringify({
                     inputs: req.body.message,
-                    options: {
-                        wait_for_model: true
+                    parameters: {
+                        max_length: 100,
+                        temperature: 0.7,
+                        top_p: 0.9
                     }
                 })
             }
@@ -78,7 +80,19 @@ app.post('/api/chat', async (req, res) => {
         }
 
         const data = await response.json();
-        const aiResponse = data[0].generated_text;
+        let aiResponse;
+        
+        // Handle different response formats
+        if (Array.isArray(data) && data[0].generated_text) {
+            aiResponse = data[0].generated_text;
+        } else if (typeof data === 'string') {
+            aiResponse = data;
+        } else if (data.generated_text) {
+            aiResponse = data.generated_text;
+        } else {
+            aiResponse = "Polly understood that!";
+        }
+
         const parrotResponse = `*SQUAWK* ${aiResponse} *flaps wings*`;
 
         res.json({ 
