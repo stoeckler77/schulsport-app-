@@ -7,90 +7,97 @@ const app = express();
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// Categories of responses for different topics
-const responses = {
-    greeting: [
-        "*SQUAWK* Hello there, friend!",
-        "Pretty bird says hi! *flaps wings*",
-        "Greetings, human! Want a cracker?",
-        "*CHIRP* Welcome back! I missed you!"
-    ],
-    
-    questions: [
-        "Hmm... *tilts head* That's a good question!",
-        "Polly knows! *excited hop* Let me tell you...",
-        "*SQUAWK* I've been thinking about that too!",
-        "Oh! That's my favorite topic! *preens feathers*"
-    ],
-    
-    food: [
-        "Crackers are my favorite! *excited dance*",
-        "*SQUAWK* I love fresh fruits and seeds!",
-        "Have you tried mango? It's delicious! *happy chirp*",
-        "Sunflower seeds are the best! Want to share?"
-    ],
-    
-    tricks: [
-        "*SQUAWK* Watch this! *does a twirl*",
-        "Polly can dance! *bobs head rhythmically*",
-        "Want to see my best trick? *spreads wings*",
-        "*CHIRP* I can sing too! La la la!"
-    ],
-    
-    compliments: [
-        "*CHIRP* You're such a good friend!",
-        "Pretty human! *happy dance*",
-        "You make Polly so happy! *flaps wings*",
-        "*SQUAWK* I like you too!"
-    ],
-    
-    general: [
-        "That's fascinating! Tell me more!",
-        "*SQUAWK* How interesting!",
-        "Polly understands! *nods wisely*",
-        "Oh! That reminds me of something! *excited hop*",
-        "Really? *tilts head curiously*",
-        "Polly loves chatting about that! *preens feathers*",
-        "*CHIRP* What a wonderful conversation!"
-    ]
-};
+// Backup responses if API fails
+const backupResponses = [
+    "*SQUAWK* Hello there!",
+    "Pretty bird wants to chat!",
+    "*CHIRP* That's interesting!",
+    "Polly loves making new friends!"
+];
 
-app.post('/api/chat', (req, res) => {
+app.post('/api/chat', async (req, res) => {
     try {
-        const message = req.body.message.toLowerCase();
-        let category = 'general';
+        const apiKey = process.env.HUGGING_FACE_API_KEY;
         
-        // Determine message category
-        if (message.includes('hello') || message.includes('hi ') || message.includes('hey')) {
-            category = 'greeting';
-        } else if (message.includes('?')) {
-            category = 'questions';
-        } else if (message.includes('food') || message.includes('eat') || message.includes('cracker')) {
-            category = 'food';
-        } else if (message.includes('trick') || message.includes('dance') || message.includes('sing')) {
-            category = 'tricks';
-        } else if (message.includes('good') || message.includes('nice') || message.includes('love')) {
-            category = 'compliments';
+        // Using distilGPT-2, one of the smallest and fastest models
+        const response = await fetch(
+            'https://api-inference.huggingface.co/models/distilgpt2',
+            {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    inputs: `Human: ${req.body.message}\nParrot: `,
+                    parameters: {
+                        max_length: 50,
+                        temperature: 0.7,
+                        top_p: 0.9,
+                        return_full_text: false,
+                        wait_for_model: true
+                    }
+                })
+            }
+        );
+
+        // Log everything for debugging
+        console.log('Request sent to:', 'distilgpt2');
+        console.log('API Key starts with:', apiKey ? apiKey.substring(0, 4) + '...' : 'missing');
+        console.log('API Status:', response.status);
+        
+        const responseText = await response.text();
+        console.log('Raw API Response:', responseText);
+        
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status} - ${responseText}`);
         }
+
+        const data = JSON.parse(responseText);
+        console.log('Parsed API Response:', data);
+
+        let aiResponse;
+        if (Array.isArray(data)) {
+            aiResponse = data[0].generated_text;
+        } else if (typeof data === 'string') {
+            aiResponse = data;
+        } else {
+            aiResponse = data.generated_text || "Polly understood that!";
+        }
+
+        // Clean up the response
+        aiResponse = aiResponse
+            .replace(/^Human:.*\nParrot:\s*/i, '')
+            .replace(/Human:/i, '')
+            .replace(/Parrot:/i, '')
+            .trim();
         
-        // Get random response from category
-        const categoryResponses = responses[category];
-        const response = categoryResponses[Math.floor(Math.random() * categoryResponses.length)];
+        // Make it more parrot-like
+        const prefixes = ["*SQUAWK* ", "Pretty bird! ", "*CHIRP* ", "Polly says: "];
+        const suffixes = [" *flaps wings*", " Want a cracker?", " *bobs head*", " *preens feathers*"];
         
-        console.log('Message:', message);
-        console.log('Category:', category);
-        console.log('Response:', response);
+        const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+        const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
         
-        res.json({ response });
+        const parrotResponse = prefix + aiResponse + suffix;
+        
+        res.json({ response: parrotResponse });
+
     } catch (error) {
-        console.error('Error:', error);
-        res.json({ 
-            response: "*SQUAWK* Polly is happy to chat with you!"
-        });
+        console.error('Detailed error:', error);
+        // Use backup response if API fails
+        const backupResponse = backupResponses[Math.floor(Math.random() * backupResponses.length)];
+        res.json({ response: backupResponse });
     }
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log('Server starting up...');
+    console.log('Environment check:', {
+        nodeEnv: process.env.NODE_ENV,
+        hasApiKey: !!process.env.HUGGING_FACE_API_KEY,
+        apiKeyStart: process.env.HUGGING_FACE_API_KEY ? 
+            process.env.HUGGING_FACE_API_KEY.substring(0, 4) + '...' : 'missing'
+    });
 }); 
