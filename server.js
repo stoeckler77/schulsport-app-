@@ -7,87 +7,90 @@ const app = express();
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// Backup responses if API fails
-const backupResponses = [
-    "*SQUAWK* Hello there!",
-    "Pretty bird wants to chat!",
-    "*CHIRP* That's interesting!",
-    "Polly loves making new friends!"
-];
+// Categories of responses for different topics
+const responses = {
+    greeting: [
+        "*SQUAWK* Hello there, friend!",
+        "Pretty bird says hi! *flaps wings*",
+        "Greetings, human! Want a cracker?",
+        "*CHIRP* Welcome back! I missed you!"
+    ],
+    
+    questions: [
+        "Hmm... *tilts head* That's a good question!",
+        "Polly knows! *excited hop* Let me tell you...",
+        "*SQUAWK* I've been thinking about that too!",
+        "Oh! That's my favorite topic! *preens feathers*"
+    ],
+    
+    food: [
+        "Crackers are my favorite! *excited dance*",
+        "*SQUAWK* I love fresh fruits and seeds!",
+        "Have you tried mango? It's delicious! *happy chirp*",
+        "Sunflower seeds are the best! Want to share?"
+    ],
+    
+    tricks: [
+        "*SQUAWK* Watch this! *does a twirl*",
+        "Polly can dance! *bobs head rhythmically*",
+        "Want to see my best trick? *spreads wings*",
+        "*CHIRP* I can sing too! La la la!"
+    ],
+    
+    compliments: [
+        "*CHIRP* You're such a good friend!",
+        "Pretty human! *happy dance*",
+        "You make Polly so happy! *flaps wings*",
+        "*SQUAWK* I like you too!"
+    ],
+    
+    general: [
+        "That's fascinating! Tell me more!",
+        "*SQUAWK* How interesting!",
+        "Polly understands! *nods wisely*",
+        "Oh! That reminds me of something! *excited hop*",
+        "Really? *tilts head curiously*",
+        "Polly loves chatting about that! *preens feathers*",
+        "*CHIRP* What a wonderful conversation!"
+    ]
+};
 
-app.post('/api/chat', async (req, res) => {
+app.post('/api/chat', (req, res) => {
     try {
-        const apiKey = process.env.HUGGING_FACE_API_KEY;
+        const message = req.body.message.toLowerCase();
+        let category = 'general';
         
-        // Using TinyLlama, a free alternative
-        const response = await fetch(
-            'https://api-inference.huggingface.co/models/TinyLlama/TinyLlama-1.1B-Chat-v1.0',
-            {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    inputs: `<|system|>You are a friendly parrot named Polly who loves to chat.</s><|user|>${req.body.message}</s><|assistant|>`,
-                    parameters: {
-                        max_length: 200,
-                        temperature: 0.7,
-                        top_p: 0.9,
-                        return_full_text: false
-                    }
-                })
-            }
-        );
-
-        console.log('API Status:', response.status);
-        const responseText = await response.text();
-        console.log('Raw API Response:', responseText);
-        
-        if (!response.ok) {
-            throw new Error(`API error: ${response.status} - ${responseText}`);
+        // Determine message category
+        if (message.includes('hello') || message.includes('hi ') || message.includes('hey')) {
+            category = 'greeting';
+        } else if (message.includes('?')) {
+            category = 'questions';
+        } else if (message.includes('food') || message.includes('eat') || message.includes('cracker')) {
+            category = 'food';
+        } else if (message.includes('trick') || message.includes('dance') || message.includes('sing')) {
+            category = 'tricks';
+        } else if (message.includes('good') || message.includes('nice') || message.includes('love')) {
+            category = 'compliments';
         }
-
-        const data = JSON.parse(responseText);
-        console.log('Parsed API Response:', data);
-
-        let aiResponse;
-        if (Array.isArray(data)) {
-            aiResponse = data[0].generated_text;
-        } else if (typeof data === 'string') {
-            aiResponse = data;
-        } else {
-            aiResponse = data.generated_text || "Polly understood that!";
-        }
-
-        // Clean up formatting
-        aiResponse = aiResponse
-            .replace(/<\|system\|>.*?<\/s>/, '')
-            .replace(/<\|user\|>.*?<\/s>/, '')
-            .replace(/<\|assistant\|>/, '')
-            .trim();
         
-        // Make it more parrot-like
-        const prefixes = ["*SQUAWK* ", "Pretty bird! ", "*CHIRP* ", "Polly says: "];
-        const suffixes = [" *flaps wings*", " Want a cracker?", " *bobs head*", " *preens feathers*"];
+        // Get random response from category
+        const categoryResponses = responses[category];
+        const response = categoryResponses[Math.floor(Math.random() * categoryResponses.length)];
         
-        const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-        const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
+        console.log('Message:', message);
+        console.log('Category:', category);
+        console.log('Response:', response);
         
-        const parrotResponse = prefix + aiResponse + suffix;
-        
-        res.json({ response: parrotResponse });
-
+        res.json({ response });
     } catch (error) {
         console.error('Error:', error);
-        // Use backup response if API fails
-        const backupResponse = backupResponses[Math.floor(Math.random() * backupResponses.length)];
-        res.json({ response: backupResponse });
+        res.json({ 
+            response: "*SQUAWK* Polly is happy to chat with you!"
+        });
     }
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log('Server starting up...');
-    console.log('API Key present:', !!process.env.HUGGING_FACE_API_KEY);
+    console.log(`Server running on port ${PORT}`);
 }); 
