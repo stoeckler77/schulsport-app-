@@ -130,7 +130,7 @@
 <body>
     <div class="container">
         <div class="parrot-container">
-            <img src="./parrot.png" class="parrot" alt="Parrot" onerror="console.error('Failed to load image:', this.src)">
+            <img src="./parrot.png" class="parrot" alt="Parrot">
         </div>
         
         <div class="chat-section">
@@ -145,275 +145,85 @@
             
             <div id="controls">
                 <button id="startButton">Talk to Polly!</button>
-                <button id="languageButton">🇩🇪 Deutsch / English 🇬🇧</button>
                 <div id="status">Click the button and allow microphone access to talk!</div>
             </div>
         </div>
     </div>
 
-    <div style="text-align: center; margin: 10px; font-size: 12px; color: #666;" id="modelInfo">
-        Checking AI model...
-    </div>
-
     <script>
-        const parrotContainer = document.querySelector('.parrot-container');
+        const chatHistory = document.getElementById('chatHistory');
+        const textInput = document.getElementById('textInput');
+        const sendButton = document.getElementById('sendButton');
         const startButton = document.getElementById('startButton');
         const statusDiv = document.getElementById('status');
-        const parrotImg = document.querySelector('.parrot');
 
-        // Debug image loading
-        parrotImg.onload = () => {
-            console.log('Parrot image loaded successfully');
-            statusDiv.textContent += '\nParrot image loaded!';
-        };
-
-        parrotImg.onerror = (e) => {
-            console.error('Error loading parrot image:', e);
-            statusDiv.textContent += '\nError loading parrot image!';
-        };
-
-        // Initialize speech recognition
-        if (!('webkitSpeechRecognition' in window)) {
-            statusDiv.textContent = 'Speech recognition not supported in this browser. Please use Chrome.';
-            startButton.disabled = true;
+        // Add message to chat history
+        function addMessageToChat(text, isUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${isUser ? 'user-message' : 'parrot-message'}`;
+            messageDiv.textContent = isUser ? `You: ${text}` : `Polly: ${text}`;
+            chatHistory.appendChild(messageDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
         }
 
-        const recognition = new webkitSpeechRecognition();
-        recognition.continuous = false;
-        recognition.interimResults = false;
-
-        // Initialize speech synthesis
-        const synth = window.speechSynthesis;
-
-        function startTalking() {
-            parrotContainer.classList.add('talking');
-        }
-
-        function stopTalking() {
-            parrotContainer.classList.remove('talking');
-        }
-
-        // Language selection
-        let currentLanguage = 'en'; // default to English
-
-        // Add language toggle button to controls
-        const languageButton = document.getElementById('languageButton');
-        languageButton.onclick = toggleLanguage;
-
-        function toggleLanguage() {
-            currentLanguage = currentLanguage === 'en' ? 'de' : 'en';
-            statusDiv.textContent = currentLanguage === 'en' ? 
-                "Click the button and allow microphone access to talk!" :
-                "Klicke den Button und erlaube den Mikrofonzugriff!";
-            recognition.lang = currentLanguage === 'en' ? 'en-US' : 'de-DE';
-        }
-
-        // Bilingual parrot phrases
-        const parrotPhrases = {
-            en: [
-                "*SQUAWK* ",
-                "*SCREECH* ",
-                "Polly wants a cracker! ",
-                "Pretty bird! "
-            ],
-            de: [
-                "*KRÄCHZ* ",
-                "*SQUAWK* ",
-                "Polly möchte einen Keks! ",
-                "Schöner Vogel! ",
-                "Lecker! "
-            ]
-        };
-
-        function selectVoice(voices) {
-            // Select appropriate voice based on language
-            if (currentLanguage === 'de') {
-                return voices.find(voice => voice.lang.includes('de')) || 
-                       voices.find(voice => voice.name.includes('Deutsch')) ||
-                       voices.find(voice => voice.name.includes('German')) ||
-                       voices[0];
-            }
-            return voices.find(voice => voice.lang.includes('en')) || 
-                   voices.find(voice => voice.name.includes('English')) ||
-                   voices[0];
-        }
-
-        function parrotifyText(text) {
-            const phrases = parrotPhrases[currentLanguage];
-            const prefix = phrases[Math.floor(Math.random() * phrases.length)];
-            
-            // Add parrot-like repetition sometimes
-            if (Math.random() < 0.3) {
-                const words = text.split(' ');
-                const wordToRepeat = words[Math.floor(Math.random() * words.length)];
-                text += currentLanguage === 'en' ? 
-                    ` ${wordToRepeat}! ${wordToRepeat}!` :
-                    ` ${wordToRepeat}! Ja, ${wordToRepeat}!`;
-            }
-
-            return prefix + text;
-        }
-
-        recognition.onstart = () => {
-            statusDiv.textContent = "Listening...";
-            startButton.disabled = true;
-        };
-
-        recognition.onresult = async (event) => {
-            const text = event.results[0][0].transcript;
-            addMessageToChat(text, true);
-            
-            const response = await getAIResponse(text);
-            const parrotResponse = parrotifyText(response);
-            
-            addMessageToChat(parrotResponse, false);
-            
-            const utterance = new SpeechSynthesisUtterance(parrotResponse);
-            const voice = await getParrotVoice();
-            utterance.voice = voice;
-            utterance.lang = currentLanguage === 'en' ? 'en-US' : 'de-DE';
-            utterance.pitch = 1.5;
-            utterance.rate = 1.1;
-            utterance.volume = 1.0;
-            
-            utterance.onstart = startTalking;
-            utterance.onend = () => {
-                stopTalking();
-                startButton.disabled = false;
-                statusDiv.textContent = currentLanguage === 'en' ?
-                    "Polly wants to talk more! Click to speak again!" :
-                    "Polly möchte mehr reden! Klicke zum Weitersprechen!";
-            };
-            
-            synth.speak(utterance);
-        };
-
-        recognition.onerror = (event) => {
-            console.error('Recognition error:', event.error);
-            statusDiv.textContent = "Error occurred in recognition: " + event.error;
-            startButton.disabled = false;
-        };
-
-        recognition.onend = () => {
-            if (!synth.speaking) {
-                startButton.disabled = false;
-            }
-        };
-
-        startButton.addEventListener('click', () => {
-            recognition.start();
-        });
-
-        async function getAIResponse(text) {
+        // Handle sending messages
+        async function sendMessage(text) {
             try {
+                addMessageToChat(text, true);
+                
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        message: text,
-                        language: currentLanguage
-                    })
+                    body: JSON.stringify({ message: text })
                 });
                 
                 const data = await response.json();
-                if (data.error) throw new Error(data.error);
-                return data.response;
+                addMessageToChat(data.response, false);
             } catch (error) {
-                console.error('AI Error:', error);
-                return currentLanguage === 'en' ?
-                    "Squawk! Sorry, my brain is a bit fuzzy right now!" :
-                    "Krächz! Tut mir leid, mein Gehirn ist gerade etwas durcheinander!";
+                console.error('Error:', error);
+                addMessageToChat("Squawk! Something went wrong!", false);
             }
         }
 
-        // Parrot voice configuration
-        function getParrotVoice() {
-            return new Promise(resolve => {
-                let voices = synth.getVoices();
-                if (voices.length) {
-                    resolve(selectVoice(voices));
-                } else {
-                    synth.onvoiceschanged = () => {
-                        voices = synth.getVoices();
-                        resolve(selectVoice(voices));
-                    };
-                }
-            });
-        }
-
-        function addMessageToChat(text, isUser, modelInfo = '') {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `chat-message ${isUser ? 'user-message' : 'parrot-message'}`;
-            messageDiv.textContent = isUser ? `You: ${text}` : `Polly: ${text}`;
-            
-            if (!isUser && modelInfo) {
-                const modelDiv = document.createElement('div');
-                modelDiv.style.fontSize = '10px';
-                modelDiv.style.color = '#666';
-                modelDiv.textContent = `Model: ${modelInfo}`;
-                messageDiv.appendChild(modelDiv);
-            }
-            
-            const chatHistory = document.getElementById('chatHistory');
-            chatHistory.appendChild(messageDiv);
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-        }
-
-        async function handleTextInput(text) {
-            addMessageToChat(text, true);
-            
-            const response = await getAIResponse(text);
-            const parrotResponse = parrotifyText(response.response || response);
-            
-            addMessageToChat(parrotResponse, false, response.model);
-            
-            const utterance = new SpeechSynthesisUtterance(parrotResponse);
-            const voice = await getParrotVoice();
-            utterance.voice = voice;
-            utterance.lang = currentLanguage === 'en' ? 'en-US' : 'de-DE';
-            utterance.pitch = 1.5;
-            utterance.rate = 1.1;
-            utterance.volume = 1.0;
-            
-            utterance.onstart = startTalking;
-            utterance.onend = stopTalking;
-            
-            synth.speak(utterance);
-        }
-
-        // Add event listeners for text input
-        document.getElementById('textInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                const text = e.target.value.trim();
-                if (text) {
-                    handleTextInput(text);
-                    e.target.value = '';
-                }
-            }
-        });
-
-        document.getElementById('sendButton').addEventListener('click', () => {
-            const textInput = document.getElementById('textInput');
+        // Event listeners
+        sendButton.addEventListener('click', () => {
             const text = textInput.value.trim();
             if (text) {
-                handleTextInput(text);
+                sendMessage(text);
                 textInput.value = '';
             }
         });
 
-        async function checkModel() {
-            try {
-                const response = await fetch('/api/model-info');
-                const data = await response.json();
-                document.getElementById('modelInfo').textContent = `AI Model: ${data.name}`;
-            } catch (error) {
-                console.error('Error checking model:', error);
+        textInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const text = textInput.value.trim();
+                if (text) {
+                    sendMessage(text);
+                    textInput.value = '';
+                }
             }
-        }
+        });
 
-        checkModel();
+        // Speech recognition setup
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onresult = (event) => {
+            const text = event.results[0][0].transcript;
+            sendMessage(text);
+        };
+
+        startButton.addEventListener('click', () => {
+            recognition.start();
+            statusDiv.textContent = "Listening...";
+        });
+
+        recognition.onend = () => {
+            statusDiv.textContent = "Click to speak again!";
+        };
     </script>
 </body>
 </html> 
