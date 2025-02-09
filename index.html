@@ -5,139 +5,22 @@
     <style>
         body {
             margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-color: #f0f0f0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
         }
 
-        .container {
-            display: flex;
-            gap: 20px;
-            align-items: flex-start;
-            max-width: 1200px;
-            padding: 20px;
-        }
-
-        .parrot-container {
-            position: relative;
-            width: 500px;
-            height: 500px;
-        }
-
-        .parrot {
-            width: 100%;
-            height: 100%;
-            animation: headTilt 2s infinite;
-            transform-origin: center;
-            object-fit: contain;
-        }
-
-        .chat-section {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-width: 400px;
-        }
-
-        .chat-container {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            max-height: 400px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-        }
-
-        .chat-message {
-            margin: 8px;
-            padding: 12px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .user-message {
-            background-color: #e3f2fd;
-            border-left: 4px solid #2196F3;
-            margin-left: 20%;
-            text-align: right;
-        }
-
-        .parrot-message {
-            background-color: #e6ffe6;
-            border-left: 4px solid #4CAF50;
-            margin-right: 20%;
-        }
-
-        .input-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        #textInput {
-            flex-grow: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-        }
-
-        button:hover {
-            background-color: #45a049;
-        }
-
-        #controls {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        #status {
-            margin-top: 10px;
-            padding: 10px;
-            background-color: #fff;
-            border-radius: 5px;
-            width: 100%;
-        }
-
-        @keyframes headTilt {
-            0% { transform: rotate(0deg); }
-            25% { transform: rotate(5deg); }
-            75% { transform: rotate(-5deg); }
-            100% { transform: rotate(0deg); }
-        }
-
-        .talking .parrot {
-            animation: quickTilt 0.2s infinite;
-        }
-
-        @keyframes quickTilt {
-            0% { transform: rotate(0deg); }
-            50% { transform: rotate(3deg); }
-            100% { transform: rotate(0deg); }
-        }
-
-        /* Add title styling */
-        .title-container {
-            text-align: center;
-            margin: 20px 0;
-            padding: 10px;
+        /* Title bar styling */
+        .title-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
             background: linear-gradient(135deg, #4CAF50, #2196F3);
-            border-radius: 15px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 15px 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
         }
 
         .title {
@@ -160,43 +43,97 @@
             50% { transform: translateY(-10px); }
         }
 
-        /* Adjust existing container to account for title */
+        /* Main content container */
         .container {
             max-width: 800px;
-            margin: 0 auto;
+            margin: 100px auto 20px; /* Added top margin to account for fixed title */
             padding: 20px;
+        }
+
+        /* Existing styles */
+        .chat-container {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #textInput {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .chat-message {
+            margin: 8px;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .parrot-message {
+            background-color: #e6ffe6;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .user-message {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196F3;
+        }
+
+        #status {
+            text-align: center;
+            color: #666;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Add title section -->
-        <div class="title-container">
-            <h1 class="title">
-                <span class="parrot-emoji">🦜</span>
-                Talk to Polly
-                <span class="parrot-emoji">🦜</span>
-            </h1>
-        </div>
+    <!-- Fixed title bar -->
+    <div class="title-bar">
+        <h1 class="title">
+            <span class="parrot-emoji">🦜</span>
+            Talk to Polly
+            <span class="parrot-emoji">🦜</span>
+        </h1>
+    </div>
 
-        <div class="parrot-container">
-            <img src="./parrot.png" class="parrot" alt="Parrot">
+    <div class="container">
+        <div class="chat-container" id="chatHistory">
+            <!-- Chat messages will appear here -->
         </div>
         
-        <div class="chat-section">
-            <div class="chat-container" id="chatHistory">
-                <!-- Chat messages will appear here -->
-            </div>
-            
-            <div class="input-container">
-                <input type="text" id="textInput" placeholder="Type your message...">
-                <button id="sendButton">Send</button>
-            </div>
-            
-            <div id="controls">
-                <button id="startButton">Talk to Polly!</button>
-                <div id="status">Click the button and allow microphone access to talk!</div>
-            </div>
+        <div class="input-container">
+            <input type="text" id="textInput" placeholder="Type your message...">
+            <button id="sendButton">Send</button>
+        </div>
+        
+        <div id="controls">
+            <button id="startButton">Talk to Polly!</button>
+            <div id="status">Click the button and allow microphone access to talk!</div>
         </div>
     </div>
 
