@@ -29,11 +29,15 @@ app.post('/api/chat', async (req, res) => {
     try {
         const apiKey = process.env.HUGGING_FACE_API_KEY;
         
+        // Log API key presence (first few characters only)
+        console.log('API Key starts with:', apiKey ? apiKey.substring(0, 4) + '...' : 'missing');
+        
         if (!apiKey) {
             throw new Error('API key not configured');
         }
 
-        console.log('Sending to API:', req.body.message);
+        // Log the attempt
+        console.log('Attempting API call with message:', req.body.message);
 
         const response = await fetch(
             'https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill',
@@ -44,37 +48,49 @@ app.post('/api/chat', async (req, res) => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    inputs: req.body.message,
-                    options: {
-                        wait_for_model: true
-                    }
+                    inputs: req.body.message
                 })
             }
         );
 
+        // Log the API response status
+        console.log('API Response Status:', response.status);
+
+        // Get the raw response text
+        const responseText = await response.text();
+        console.log('Raw API Response:', responseText);
+
         if (!response.ok) {
-            throw new Error(`API returned status ${response.status}`);
+            throw new Error(`API returned status ${response.status}: ${responseText}`);
         }
 
-        const data = await response.json();
-        console.log('API response:', data);
+        // Parse the response
+        const data = JSON.parse(responseText);
+        console.log('Parsed API Response:', data);
 
-        // Get the AI response and parrotify it
         const aiResponse = data[0].generated_text;
-        const parrotResponse = parrotify(aiResponse);
+        const parrotResponse = `*SQUAWK* ${aiResponse} *flaps wings*`;
 
         res.json({ response: parrotResponse });
 
     } catch (error) {
-        console.error('Error:', error);
-        // Use backup response if API fails
-        const backupResponse = backupResponses[Math.floor(Math.random() * backupResponses.length)];
-        res.json({ response: backupResponse });
+        // Log the full error
+        console.error('Detailed error:', error);
+        console.error('Error stack:', error.stack);
+        
+        res.status(500).json({ 
+            response: "*SQUAWK* Polly is having trouble connecting to her brain! Please check the logs!",
+            error: error.message
+        });
     }
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log('API Key present:', !!process.env.HUGGING_FACE_API_KEY);
+    console.log('Server starting up...');
+    console.log('Environment check:', {
+        hasApiKey: !!process.env.HUGGING_FACE_API_KEY,
+        apiKeyStart: process.env.HUGGING_FACE_API_KEY ? 
+            process.env.HUGGING_FACE_API_KEY.substring(0, 4) + '...' : 'missing'
+    });
 }); 
