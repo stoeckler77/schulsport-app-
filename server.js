@@ -19,9 +19,9 @@ app.post('/api/chat', async (req, res) => {
     try {
         const apiKey = process.env.HUGGING_FACE_API_KEY;
         
-        // Using a smaller, hosted model
+        // Using Meta's Llama model
         const response = await fetch(
-            'https://api-inference.huggingface.co/models/EleutherAI/gpt-neo-125m',
+            'https://api-inference.huggingface.co/models/meta-llama/Llama-2-7b-chat-hf',
             {
                 method: 'POST',
                 headers: {
@@ -29,10 +29,11 @@ app.post('/api/chat', async (req, res) => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    inputs: req.body.message,
+                    inputs: `<s>[INST] ${req.body.message} [/INST]`,
                     parameters: {
-                        max_length: 50,
+                        max_length: 200,
                         temperature: 0.7,
+                        top_p: 0.9,
                         return_full_text: false
                     }
                 })
@@ -40,13 +41,15 @@ app.post('/api/chat', async (req, res) => {
         );
 
         console.log('API Status:', response.status);
+        const responseText = await response.text();
+        console.log('Raw API Response:', responseText);
         
         if (!response.ok) {
-            throw new Error(`API error: ${response.status}`);
+            throw new Error(`API error: ${response.status} - ${responseText}`);
         }
 
-        const data = await response.json();
-        console.log('API Response:', data);
+        const data = JSON.parse(responseText);
+        console.log('Parsed API Response:', data);
 
         let aiResponse;
         if (Array.isArray(data)) {
@@ -57,7 +60,18 @@ app.post('/api/chat', async (req, res) => {
             aiResponse = data.generated_text || "Polly understood that!";
         }
 
-        const parrotResponse = `*SQUAWK* ${aiResponse} *flaps wings*`;
+        // Clean up Llama formatting
+        aiResponse = aiResponse.replace(/<s>\[INST\].*?\[\/INST\]/, '').trim();
+        
+        // Make it more parrot-like
+        const prefixes = ["*SQUAWK* ", "Pretty bird! ", "*CHIRP* ", "Polly says: "];
+        const suffixes = [" *flaps wings*", " Want a cracker?", " *bobs head*", " *preens feathers*"];
+        
+        const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+        const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
+        
+        const parrotResponse = prefix + aiResponse + suffix;
+        
         res.json({ response: parrotResponse });
 
     } catch (error) {
