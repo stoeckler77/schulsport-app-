@@ -7,6 +7,22 @@ const app = express();
 app.use(express.json());
 app.use(express.static(__dirname));
 
+// Available models
+const MODELS = {
+    blenderbot: {
+        name: 'facebook/blenderbot-400M-distill',
+        displayName: 'BlenderBot'
+    },
+    deepseek: {
+        name: 'deepseek-ai/deepseek-chat-instruct',
+        displayName: 'DeepSeek'
+    }
+};
+
+app.get('/api/models', (req, res) => {
+    res.json(MODELS);
+});
+
 // Backup responses in case the API fails
 const backupResponses = [
     "*SQUAWK* Hello there!",
@@ -28,19 +44,12 @@ function parrotify(text) {
 app.post('/api/chat', async (req, res) => {
     try {
         const apiKey = process.env.HUGGING_FACE_API_KEY;
+        const selectedModel = MODELS[req.body.model || 'blenderbot'];
         
-        // Log API key presence (first few characters only)
-        console.log('API Key starts with:', apiKey ? apiKey.substring(0, 4) + '...' : 'missing');
-        
-        if (!apiKey) {
-            throw new Error('API key not configured');
-        }
-
-        // Log the attempt
-        console.log('Attempting API call with message:', req.body.message);
+        console.log('Using model:', selectedModel.displayName);
 
         const response = await fetch(
-            'https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill',
+            `https://api-inference.huggingface.co/models/${selectedModel.name}`,
             {
                 method: 'POST',
                 headers: {
@@ -53,33 +62,24 @@ app.post('/api/chat', async (req, res) => {
             }
         );
 
-        // Log the API response status
-        console.log('API Response Status:', response.status);
-
-        // Get the raw response text
-        const responseText = await response.text();
-        console.log('Raw API Response:', responseText);
-
         if (!response.ok) {
-            throw new Error(`API returned status ${response.status}: ${responseText}`);
+            const errorText = await response.text();
+            throw new Error(`API returned status ${response.status}: ${errorText}`);
         }
 
-        // Parse the response
-        const data = JSON.parse(responseText);
-        console.log('Parsed API Response:', data);
-
+        const data = await response.json();
         const aiResponse = data[0].generated_text;
         const parrotResponse = `*SQUAWK* ${aiResponse} *flaps wings*`;
 
-        res.json({ response: parrotResponse });
+        res.json({ 
+            response: parrotResponse,
+            model: selectedModel.displayName
+        });
 
     } catch (error) {
-        // Log the full error
         console.error('Detailed error:', error);
-        console.error('Error stack:', error.stack);
-        
         res.status(500).json({ 
-            response: "*SQUAWK* Polly is having trouble connecting to her brain! Please check the logs!",
+            response: "*SQUAWK* Polly is having trouble with that model! Try another one!",
             error: error.message
         });
     }

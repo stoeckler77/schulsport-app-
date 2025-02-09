@@ -138,6 +138,15 @@
                 <!-- Chat messages will appear here -->
             </div>
             
+            <div style="margin-bottom: 10px;">
+                <label for="modelSelect">Polly's Brain: </label>
+                <select id="modelSelect">
+                    <option value="blenderbot">BlenderBot</option>
+                    <option value="deepseek">DeepSeek</option>
+                </select>
+                <span id="currentModel"></span>
+            </div>
+            
             <div class="input-container">
                 <input type="text" id="textInput" placeholder="Type your message...">
                 <button id="sendButton">Send</button>
@@ -156,6 +165,8 @@
         const sendButton = document.getElementById('sendButton');
         const startButton = document.getElementById('startButton');
         const statusDiv = document.getElementById('status');
+        const modelSelect = document.getElementById('modelSelect');
+        const currentModel = document.getElementById('currentModel');
 
         // Initialize speech synthesis
         const synth = window.speechSynthesis;
@@ -187,11 +198,15 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ message: text })
+                    body: JSON.stringify({ 
+                        message: text,
+                        model: modelSelect.value
+                    })
                 });
                 
                 const data = await response.json();
                 addMessageToChat(data.response, false);
+                currentModel.textContent = `Using: ${data.model}`;
             } catch (error) {
                 console.error('Error:', error);
                 addMessageToChat("Squawk! Something went wrong!", false);
