@@ -19,9 +19,9 @@ app.post('/api/chat', async (req, res) => {
     try {
         const apiKey = process.env.HUGGING_FACE_API_KEY;
         
-        // Using Meta's Llama model
+        // Using TinyLlama, a free alternative
         const response = await fetch(
-            'https://api-inference.huggingface.co/models/meta-llama/Llama-2-7b-chat-hf',
+            'https://api-inference.huggingface.co/models/TinyLlama/TinyLlama-1.1B-Chat-v1.0',
             {
                 method: 'POST',
                 headers: {
@@ -29,7 +29,7 @@ app.post('/api/chat', async (req, res) => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    inputs: `<s>[INST] ${req.body.message} [/INST]`,
+                    inputs: `<|system|>You are a friendly parrot named Polly who loves to chat.</s><|user|>${req.body.message}</s><|assistant|>`,
                     parameters: {
                         max_length: 200,
                         temperature: 0.7,
@@ -60,8 +60,12 @@ app.post('/api/chat', async (req, res) => {
             aiResponse = data.generated_text || "Polly understood that!";
         }
 
-        // Clean up Llama formatting
-        aiResponse = aiResponse.replace(/<s>\[INST\].*?\[\/INST\]/, '').trim();
+        // Clean up formatting
+        aiResponse = aiResponse
+            .replace(/<\|system\|>.*?<\/s>/, '')
+            .replace(/<\|user\|>.*?<\/s>/, '')
+            .replace(/<\|assistant\|>/, '')
+            .trim();
         
         // Make it more parrot-like
         const prefixes = ["*SQUAWK* ", "Pretty bird! ", "*CHIRP* ", "Polly says: "];
