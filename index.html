@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <title>Talk to Polly</title>
     <style>
         body {
             margin: 0;
@@ -128,10 +129,56 @@
             50% { transform: rotate(3deg); }
             100% { transform: rotate(0deg); }
         }
+
+        /* Add title styling */
+        .title-container {
+            text-align: center;
+            margin: 20px 0;
+            padding: 10px;
+            background: linear-gradient(135deg, #4CAF50, #2196F3);
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .title {
+            color: white;
+            font-size: 2.5em;
+            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+            margin: 0;
+            padding: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .parrot-emoji {
+            font-size: 1.5em;
+            margin: 0 10px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Adjust existing container to account for title */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Add title section -->
+        <div class="title-container">
+            <h1 class="title">
+                <span class="parrot-emoji">🦜</span>
+                Talk to Polly
+                <span class="parrot-emoji">🦜</span>
+            </h1>
+        </div>
+
         <div class="parrot-container">
             <img src="./parrot.png" class="parrot" alt="Parrot">
         </div>
