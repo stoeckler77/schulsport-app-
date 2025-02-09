@@ -9,22 +9,58 @@ app.use(express.static(__dirname));
 
 // Available models with descriptions
 const MODELS = {
-    blenderbot: {
-        name: 'facebook/blenderbot-400M-distill',
-        displayName: 'BlenderBot',
-        description: 'Friendly chatbot good at casual conversation'
-    },
     gpt2: {
         name: 'gpt2',
         displayName: 'GPT-2',
         description: 'Classic language model good at general text generation'
     },
-    dialogpt: {
-        name: 'microsoft/DialoGPT-medium',
-        displayName: 'DialoGPT',
-        description: 'Microsoft\'s model optimized for dialogue'
+    distilgpt2: {
+        name: 'distilgpt2',
+        displayName: 'DistilGPT-2',
+        description: 'Lighter, faster version of GPT-2'
+    },
+    bloom: {
+        name: 'bigscience/bloom-560m',
+        displayName: 'BLOOM',
+        description: 'Multilingual model good at various tasks'
     }
 };
+
+async function queryModel(model, message, apiKey, retries = 2) {
+    const response = await fetch(
+        `https://api-inference.huggingface.co/models/${model}`,
+        {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                inputs: message,
+                parameters: {
+                    max_length: 100,
+                    temperature: 0.7,
+                    return_full_text: false
+                }
+            })
+        }
+    );
+
+    const result = await response.json();
+
+    if (response.status === 503 && retries > 0) {
+        // Model is loading, wait and retry
+        const waitTime = (result.estimated_time || 20) * 1000;
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+        return queryModel(model, message, apiKey, retries - 1);
+    }
+
+    if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+    }
+
+    return result;
+}
 
 app.get('/api/models', (req, res) => {
     res.json(MODELS);
@@ -51,49 +87,31 @@ function parrotify(text) {
 app.post('/api/chat', async (req, res) => {
     try {
         const apiKey = process.env.HUGGING_FACE_API_KEY;
-        const selectedModel = MODELS[req.body.model || 'blenderbot'];
+        const selectedModel = MODELS[req.body.model || 'gpt2'];
         
         console.log('Using model:', selectedModel.displayName);
 
-        const response = await fetch(
-            `https://api-inference.huggingface.co/models/${selectedModel.name}`,
-            {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    inputs: req.body.message,
-                    parameters: {
-                        max_length: 100,
-                        temperature: 0.7,
-                        top_p: 0.9
-                    }
-                })
-            }
-        );
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`API returned status ${response.status}: ${errorText}`);
-        }
-
-        const data = await response.json();
-        let aiResponse;
+        const data = await queryModel(selectedModel.name, req.body.message, apiKey);
         
-        // Handle different response formats
-        if (Array.isArray(data) && data[0].generated_text) {
+        let aiResponse;
+        if (Array.isArray(data)) {
             aiResponse = data[0].generated_text;
         } else if (typeof data === 'string') {
             aiResponse = data;
         } else if (data.generated_text) {
             aiResponse = data.generated_text;
         } else {
+            console.log('Unexpected response format:', data);
             aiResponse = "Polly understood that!";
         }
 
-        const parrotResponse = `*SQUAWK* ${aiResponse} *flaps wings*`;
+        // Make response more parrot-like
+        const parrotPrefixes = ["*SQUAWK* ", "Pretty bird! ", "*CHIRP* ", "Polly says: "];
+        const parrotSuffixes = [" *flaps wings*", " Want a cracker?", " *bobs head*", ""];
+        const prefix = parrotPrefixes[Math.floor(Math.random() * parrotPrefixes.length)];
+        const suffix = parrotSuffixes[Math.floor(Math.random() * parrotSuffixes.length)];
+        
+        const parrotResponse = prefix + aiResponse + suffix;
 
         res.json({ 
             response: parrotResponse,
@@ -104,7 +122,7 @@ app.post('/api/chat', async (req, res) => {
     } catch (error) {
         console.error('Detailed error:', error);
         res.status(500).json({ 
-            response: "*SQUAWK* Polly is having trouble with that model! Try another one!",
+            response: "*SQUAWK* Polly needs a moment to think! Try again!",
             error: error.message
         });
     }
