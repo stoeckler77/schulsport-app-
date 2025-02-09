@@ -160,46 +160,54 @@
         // Initialize speech synthesis
         const synth = window.speechSynthesis;
 
-        // Function to get available voices and select a nice one
-        function setPollyVoice() {
-            return new Promise((resolve) => {
-                let voices = synth.getVoices();
-                
-                if (voices.length === 0) {
-                    // Wait for voices to load
-                    speechSynthesis.addEventListener('voiceschanged', () => {
-                        voices = synth.getVoices();
-                        resolve(selectBestVoice(voices));
-                    });
-                } else {
-                    resolve(selectBestVoice(voices));
-                }
-            });
-        }
+        // Function to speak with a specific voice
+        async function speakWithVoice(text) {
+            // Stop any current speech
+            synth.cancel();
 
-        // Select the best voice for Polly
-        function selectBestVoice(voices) {
-            // Try to find these voices in order of preference
-            const preferredVoices = [
-                {name: 'Samantha'}, // Mac OS
-                {name: 'Microsoft Zira'}, // Windows
-                {lang: 'en-GB'}, // British English
-                {lang: 'en-US'}, // US English
-                {lang: 'en'} // Any English
-            ];
+            // Clean up text for speech
+            let speechText = text
+                .replace(/\*.*?\*/g, '') // Remove actions between asterisks
+                .replace(/\s+/g, ' ')    // Clean up whitespace
+                .trim();
 
-            for (const preferred of preferredVoices) {
-                const voice = voices.find(v => 
-                    (preferred.name && v.name.includes(preferred.name)) ||
-                    (preferred.lang && v.lang.includes(preferred.lang))
-                );
-                if (voice) return voice;
+            console.log('Available voices:', synth.getVoices());
+
+            const utterance = new SpeechSynthesisUtterance(speechText);
+            
+            // Get all available voices
+            const voices = synth.getVoices();
+            console.log('Found voices:', voices.map(v => `${v.name} (${v.lang})`));
+
+            // Try to find a female English voice
+            const femaleVoice = voices.find(voice => 
+                (voice.name.includes('Female') || 
+                 voice.name.includes('Samantha') || 
+                 voice.name.includes('Victoria')) && 
+                voice.lang.includes('en')
+            );
+
+            if (femaleVoice) {
+                console.log('Using voice:', femaleVoice.name);
+                utterance.voice = femaleVoice;
             }
 
-            return voices[0]; // Fallback to first available voice
+            // Make the voice more parrot-like
+            utterance.pitch = 1.3;     // Higher pitch
+            utterance.rate = 0.9;      // Slightly slower
+            utterance.volume = 1.0;    // Full volume
+
+            // Log the final speech settings
+            console.log('Speech settings:', {
+                voice: utterance.voice ? utterance.voice.name : 'default',
+                pitch: utterance.pitch,
+                rate: utterance.rate
+            });
+
+            synth.speak(utterance);
         }
 
-        // Add message to chat history and speak it
+        // Update addMessageToChat function
         async function addMessageToChat(text, isUser) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `chat-message ${isUser ? 'user-message' : 'parrot-message'}`;
@@ -209,31 +217,7 @@
 
             // Speak Polly's messages
             if (!isUser) {
-                try {
-                    // Stop any current speech
-                    synth.cancel();
-
-                    // Clean up text for speech
-                    let speechText = text
-                        .replace(/\*.*?\*/g, '') // Remove actions between asterisks
-                        .replace(/\s+/g, ' ')    // Clean up whitespace
-                        .trim();
-
-                    const utterance = new SpeechSynthesisUtterance(speechText);
-                    
-                    // Get the best voice
-                    const voice = await setPollyVoice();
-                    utterance.voice = voice;
-                    
-                    // Adjust speech parameters
-                    utterance.pitch = 1.2;     // Slightly higher pitch
-                    utterance.rate = 0.9;      // Slightly slower
-                    utterance.volume = 1.0;    // Full volume
-                    
-                    synth.speak(utterance);
-                } catch (error) {
-                    console.error('Speech synthesis error:', error);
-                }
+                await speakWithVoice(text);
             }
         }
 
