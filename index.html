@@ -48,6 +48,7 @@
             max-width: 800px;
             margin: 100px auto 20px; /* Added top margin to account for fixed title */
             padding: 20px;
+            padding-right: 180px; /* Make space for Polly */
         }
 
         /* Existing styles */
@@ -109,6 +110,28 @@
             text-align: center;
             color: #666;
         }
+
+        /* Add styles for Polly's image container */
+        .polly-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 150px;
+            height: 150px;
+            z-index: 1000;
+            animation: gentle-bounce 3s infinite ease-in-out;
+        }
+
+        .polly-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        @keyframes gentle-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
     </style>
 </head>
 <body>
@@ -135,6 +158,11 @@
             <button id="startButton">Talk to Polly!</button>
             <div id="status">Click the button and allow microphone access to talk!</div>
         </div>
+    </div>
+
+    <!-- Add Polly's image -->
+    <div class="polly-container">
+        <img src="polly.png" alt="Polly the Parrot" class="polly-image">
     </div>
 
     <script>
