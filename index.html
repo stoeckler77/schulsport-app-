@@ -46,9 +46,9 @@
         /* Main content container */
         .container {
             max-width: 800px;
-            margin: 100px auto 20px; /* Added top margin to account for fixed title */
+            margin: 100px auto;
             padding: 20px;
-            padding-right: 180px; /* Make space for Polly */
+            padding-bottom: 180px; /* Make space for Polly */
         }
 
         /* Existing styles */
@@ -57,7 +57,7 @@
             overflow-y: auto;
             border: 1px solid #ccc;
             padding: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 40px;
             background: white;
             border-radius: 10px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
@@ -111,26 +111,21 @@
             color: #666;
         }
 
-        /* Add styles for Polly's image container */
+        /* Update Polly's container style */
         .polly-container {
             position: fixed;
             bottom: 20px;
-            right: 20px;
+            left: 50%;
+            transform: translateX(-50%);
             width: 150px;
             height: 150px;
             z-index: 1000;
-            animation: gentle-bounce 3s infinite ease-in-out;
         }
 
         .polly-image {
             width: 100%;
             height: 100%;
             object-fit: contain;
-        }
-
-        @keyframes gentle-bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
         }
     </style>
 </head>
@@ -160,7 +155,7 @@
         </div>
     </div>
 
-    <!-- Add Polly's image -->
+    <!-- Centered Polly image -->
     <div class="polly-container">
         <img src="polly.png" alt="Polly the Parrot" class="polly-image">
     </div>
