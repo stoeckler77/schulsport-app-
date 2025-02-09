@@ -160,8 +160,47 @@
         // Initialize speech synthesis
         const synth = window.speechSynthesis;
 
+        // Function to get available voices and select a nice one
+        function setPollyVoice() {
+            return new Promise((resolve) => {
+                let voices = synth.getVoices();
+                
+                if (voices.length === 0) {
+                    // Wait for voices to load
+                    speechSynthesis.addEventListener('voiceschanged', () => {
+                        voices = synth.getVoices();
+                        resolve(selectBestVoice(voices));
+                    });
+                } else {
+                    resolve(selectBestVoice(voices));
+                }
+            });
+        }
+
+        // Select the best voice for Polly
+        function selectBestVoice(voices) {
+            // Try to find these voices in order of preference
+            const preferredVoices = [
+                {name: 'Samantha'}, // Mac OS
+                {name: 'Microsoft Zira'}, // Windows
+                {lang: 'en-GB'}, // British English
+                {lang: 'en-US'}, // US English
+                {lang: 'en'} // Any English
+            ];
+
+            for (const preferred of preferredVoices) {
+                const voice = voices.find(v => 
+                    (preferred.name && v.name.includes(preferred.name)) ||
+                    (preferred.lang && v.lang.includes(preferred.lang))
+                );
+                if (voice) return voice;
+            }
+
+            return voices[0]; // Fallback to first available voice
+        }
+
         // Add message to chat history and speak it
-        function addMessageToChat(text, isUser) {
+        async function addMessageToChat(text, isUser) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `chat-message ${isUser ? 'user-message' : 'parrot-message'}`;
             messageDiv.textContent = isUser ? `You: ${text}` : `Polly: ${text}`;
@@ -169,11 +208,32 @@
             chatHistory.scrollTop = chatHistory.scrollHeight;
 
             // Speak Polly's messages
-            if (!isUser && synth) {
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.pitch = 1.5;  // Higher pitch for parrot voice
-                utterance.rate = 1.1;   // Slightly faster
-                synth.speak(utterance);
+            if (!isUser) {
+                try {
+                    // Stop any current speech
+                    synth.cancel();
+
+                    // Clean up text for speech
+                    let speechText = text
+                        .replace(/\*.*?\*/g, '') // Remove actions between asterisks
+                        .replace(/\s+/g, ' ')    // Clean up whitespace
+                        .trim();
+
+                    const utterance = new SpeechSynthesisUtterance(speechText);
+                    
+                    // Get the best voice
+                    const voice = await setPollyVoice();
+                    utterance.voice = voice;
+                    
+                    // Adjust speech parameters
+                    utterance.pitch = 1.2;     // Slightly higher pitch
+                    utterance.rate = 0.9;      // Slightly slower
+                    utterance.volume = 1.0;    // Full volume
+                    
+                    synth.speak(utterance);
+                } catch (error) {
+                    console.error('Speech synthesis error:', error);
+                }
             }
         }
 
@@ -187,20 +247,18 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ 
-                        message: text
-                    })
+                    body: JSON.stringify({ message: text })
                 });
                 
                 const data = await response.json();
                 addMessageToChat(data.response, false);
             } catch (error) {
                 console.error('Error:', error);
-                addMessageToChat("Squawk! Something went wrong!", false);
+                addMessageToChat("*gentle chirp* Oh my, something went wrong! *preens nervously*", false);
             }
         }
 
-        // Event listeners for text input
+        // Event listeners
         sendButton.addEventListener('click', () => {
             const text = textInput.value.trim();
             if (text) {
@@ -219,7 +277,7 @@
             }
         });
 
-        // Speech recognition with error handling
+        // Initialize speech recognition if available
         try {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (SpeechRecognition) {
@@ -233,13 +291,8 @@
                 };
 
                 startButton.addEventListener('click', () => {
-                    try {
-                        recognition.start();
-                        statusDiv.textContent = "Listening...";
-                    } catch (error) {
-                        console.error('Speech recognition error:', error);
-                        statusDiv.textContent = "Speech recognition not available. Please type instead.";
-                    }
+                    recognition.start();
+                    statusDiv.textContent = "Listening...";
                 });
 
                 recognition.onend = () => {
@@ -252,12 +305,12 @@
                 };
             } else {
                 startButton.style.display = 'none';
-                statusDiv.textContent = "Speech recognition not supported in this browser. Please type instead.";
+                statusDiv.textContent = "Speech recognition not supported in this browser.";
             }
         } catch (error) {
             console.error('Speech recognition setup error:', error);
             startButton.style.display = 'none';
-            statusDiv.textContent = "Speech recognition not available. Please type instead.";
+            statusDiv.textContent = "Speech recognition not available.";
         }
     </script>
 </body>
