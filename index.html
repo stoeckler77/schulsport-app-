@@ -160,6 +160,43 @@
             font-size: 0.8em;
             margin-left: 5px;
         }
+
+        /* Update controls styling */
+        #controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        #startButton {
+            padding: 12px 24px;
+            font-size: 1.1em;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #startButton:hover {
+            background-color: #45a049;
+        }
+
+        #status {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .mic-icon {
+            font-size: 1.2em;
+        }
     </style>
 </head>
 <body>
@@ -182,13 +219,19 @@
             <button id="sendButton">Send</button>
         </div>
         
+        <!-- Updated controls section -->
         <div id="controls">
-            <button id="startButton">Talk to Polly!</button>
-            <div id="status">Click the button and allow microphone access to talk!</div>
+            <button id="startButton">
+                🎤 Talk to Polly!
+            </button>
+            <div id="status">
+                <span class="mic-icon">🎙️</span>
+                Click above to allow microphone access
+            </div>
         </div>
     </div>
 
-    <!-- Add model info -->
+    <!-- Model info -->
     <div class="model-info">
         Powered by <span class="model-name">Zephyr-7B</span>
         <span class="model-badge">AI</span>
