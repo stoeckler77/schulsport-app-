@@ -1,74 +1,63 @@
 const express = require('express');
+const fetch = require('node-fetch');
 const path = require('path');
+require('dotenv').config();
 
 const app = express();
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// Expanded local responses by category
-const responses = {
-    greeting: [
-        "*SQUAWK* Hello there, friend!",
-        "Pretty bird says hi! *flaps wings*",
-        "Greetings, human! Want a cracker?",
-        "*CHIRP* Welcome back! I missed you!"
-    ],
-    
-    questions: [
-        "Hmm... *tilts head* That's a good question!",
-        "Polly knows! *excited hop* Let me tell you...",
-        "*SQUAWK* I've been thinking about that too!",
-        "Oh! That's my favorite topic! *preens feathers*"
-    ],
-    
-    food: [
-        "Crackers are my favorite! *excited dance*",
-        "*SQUAWK* I love fresh fruits and seeds!",
-        "Have you tried mango? It's delicious! *happy chirp*",
-        "Sunflower seeds are the best! Want to share?"
-    ],
-    
-    general: [
-        "That's fascinating! Tell me more!",
-        "*SQUAWK* How interesting!",
-        "Polly understands! *nods wisely*",
-        "Oh! That reminds me of something! *excited hop*",
-        "Really? *tilts head curiously*"
-    ]
-};
-
-app.post('/api/chat', (req, res) => {
+app.post('/api/chat', async (req, res) => {
     try {
-        const message = req.body.message.toLowerCase();
-        let category = 'general';
+        const apiKey = process.env.HUGGING_FACE_API_KEY;
         
-        // Determine message category
-        if (message.includes('hello') || message.includes('hi ') || message.includes('hey')) {
-            category = 'greeting';
-        } else if (message.includes('?')) {
-            category = 'questions';
-        } else if (message.includes('food') || message.includes('eat') || message.includes('cracker')) {
-            category = 'food';
+        const response = await fetch(
+            'https://api-inference.huggingface.co/models/deepseek-ai/DeepSeek-R1',
+            {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    inputs: [{
+                        role: "user",
+                        content: req.body.message
+                    }],
+                    parameters: {
+                        max_length: 200,
+                        temperature: 0.7,
+                        top_p: 0.9,
+                        trust_remote_code: true
+                    }
+                })
+            }
+        );
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`API returned status ${response.status}: ${errorText}`);
         }
-        
-        // Get random response from category
-        const categoryResponses = responses[category];
-        const response = categoryResponses[Math.floor(Math.random() * categoryResponses.length)];
-        
-        console.log('Message:', message);
-        console.log('Category:', category);
-        console.log('Response:', response);
-        
-        res.json({ response });
+
+        const data = await response.json();
+        console.log('API Response:', data);
+
+        // Extract the response and parrotify it
+        let aiResponse = data[0]?.generated_text || "Squawk!";
+        const parrotResponse = `*SQUAWK* ${aiResponse} *flaps wings*`;
+
+        res.json({ response: parrotResponse });
+
     } catch (error) {
         console.error('Error:', error);
+        // Fallback response
         res.json({ 
-            response: "*SQUAWK* Polly is happy to chat with you!"
+            response: "*SQUAWK* Polly needs a moment to think! Try again!"
         });
     }
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log('Server starting up...');
 }); 
