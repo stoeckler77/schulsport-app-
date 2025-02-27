@@ -1,0 +1,182 @@
+.admin-dashboard {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.admin-header h1 {
+  color: #2c3e50;
+  margin: 0;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-info span {
+  font-weight: bold;
+  color: #34495e;
+}
+
+.logout-btn {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.logout-btn:hover {
+  background-color: #c0392b;
+}
+
+.dashboard-actions {
+  margin-bottom: 20px;
+}
+
+.add-course-btn {
+  background-color: #2ecc71;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.add-course-btn:hover {
+  background-color: #27ae60;
+}
+
+.courses-table-container {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.courses-table-container h2 {
+  color: #2c3e50;
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.courses-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.courses-table th,
+.courses-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.courses-table th {
+  background-color: #f8f9fa;
+  font-weight: bold;
+  color: #34495e;
+}
+
+.courses-table tr:last-child td {
+  border-bottom: none;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.status-badge.active {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-badge.inactive {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 8px;
+}
+
+.status-toggle-btn,
+.edit-btn,
+.view-registrations-btn {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.status-toggle-btn {
+  background-color: #3498db;
+  color: white;
+}
+
+.status-toggle-btn:hover {
+  background-color: #2980b9;
+}
+
+.edit-btn {
+  background-color: #f39c12;
+  color: white;
+}
+
+.edit-btn:hover {
+  background-color: #d35400;
+}
+
+.view-registrations-btn {
+  background-color: #9b59b6;
+  color: white;
+}
+
+.view-registrations-btn:hover {
+  background-color: #8e44ad;
+}
+
+.no-courses {
+  text-align: center;
+  color: #7f8c8d;
+  padding: 20px 0;
+}
+
+.loading,
+.error-message {
+  text-align: center;
+  padding: 20px;
+}
+
+.error-message {
+  color: #e74c3c;
+  background-color: #ffebee;
+  border-radius: 4px;
+}
+
+.delete-btn {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.delete-btn:hover {
+  background-color: #c0392b;
+} 
