@@ -2,9 +2,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const authRoutes = require('./routes/auth');
-const courseRoutes = require('./routes/courses');
-const registrationRoutes = require('./routes/registrations');
+const fs = require('fs');
+const path = require('path');
 
 // Load environment variables
 dotenv.config();
@@ -47,21 +46,30 @@ mongoose.connect(process.env.MONGODB_URI)
       process.env.MONGODB_URI ? process.env.MONGODB_URI.substring(0, 10) + '...' : 'Not set');
   });
 
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/courses', courseRoutes);
-app.use('/api/registrations', registrationRoutes);
+// Check if route files exist before importing
+const routeFiles = {
+  auth: path.join(__dirname, 'routes', 'auth.js'),
+  courses: path.join(__dirname, 'routes', 'courses.js'),
+  registrations: path.join(__dirname, 'routes', 'registrations.js')
+};
 
-// Test route
+// Simple route for testing
 app.get('/', (req, res) => {
   res.send('API is running');
 });
 
 // Health check route
 app.get('/health', (req, res) => {
+  const routeStatus = {};
+  
+  for (const [name, filePath] of Object.entries(routeFiles)) {
+    routeStatus[name] = fs.existsSync(filePath) ? 'File exists' : 'File missing';
+  }
+  
   res.status(200).json({ 
     status: 'ok',
     mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    routes: routeStatus,
     env: {
       NODE_ENV: process.env.NODE_ENV || 'not set',
       PORT: process.env.PORT || 'not set',
@@ -70,6 +78,53 @@ app.get('/health', (req, res) => {
     }
   });
 });
+
+// Safely import and use routes
+try {
+  console.log('Checking if auth routes file exists:', fs.existsSync(routeFiles.auth));
+  if (fs.existsSync(routeFiles.auth)) {
+    const authRoutes = require('./routes/auth');
+    console.log('Auth routes type:', typeof authRoutes);
+    if (typeof authRoutes === 'function') {
+      app.use('/api/auth', authRoutes);
+      console.log('Auth routes mounted successfully');
+    } else {
+      console.error('Auth routes is not a function:', authRoutes);
+    }
+  } else {
+    console.error('Auth routes file does not exist');
+  }
+  
+  console.log('Checking if courses routes file exists:', fs.existsSync(routeFiles.courses));
+  if (fs.existsSync(routeFiles.courses)) {
+    const courseRoutes = require('./routes/courses');
+    console.log('Course routes type:', typeof courseRoutes);
+    if (typeof courseRoutes === 'function') {
+      app.use('/api/courses', courseRoutes);
+      console.log('Course routes mounted successfully');
+    } else {
+      console.error('Course routes is not a function:', courseRoutes);
+    }
+  } else {
+    console.error('Courses routes file does not exist');
+  }
+  
+  console.log('Checking if registrations routes file exists:', fs.existsSync(routeFiles.registrations));
+  if (fs.existsSync(routeFiles.registrations)) {
+    const registrationRoutes = require('./routes/registrations');
+    console.log('Registration routes type:', typeof registrationRoutes);
+    if (typeof registrationRoutes === 'function') {
+      app.use('/api/registrations', registrationRoutes);
+      console.log('Registration routes mounted successfully');
+    } else {
+      console.error('Registration routes is not a function:', registrationRoutes);
+    }
+  } else {
+    console.error('Registrations routes file does not exist');
+  }
+} catch (err) {
+  console.error('Error importing routes:', err);
+}
 
 // Error handling middleware
 app.use((err, req, res, next) => {
