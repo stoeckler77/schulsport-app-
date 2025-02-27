@@ -10,13 +10,11 @@ dotenv.config();
 
 const app = express();
 // Use environment variable for port with fallback
-const PORT = process.env.PORT || 8765;
+const PORT = process.env.PORT || 3000;
 
-console.log('Attempting to start server on port:', PORT);
-
-// Configure CORS to allow requests from your Vercel frontend
+// Configure CORS to allow requests from anywhere (you can restrict this later)
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -27,7 +25,7 @@ mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('MongoDB connected'))
   .catch(err => {
     console.error('MongoDB connection error:', err);
-    process.exit(1);
+    console.error('Connection string:', process.env.MONGODB_URI ? 'Set (hidden for security)' : 'Not set');
   });
 
 // Routes
@@ -40,47 +38,33 @@ app.get('/', (req, res) => {
   res.send('API is running');
 });
 
+// Health check route
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'ok',
+    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    env: {
+      NODE_ENV: process.env.NODE_ENV,
+      PORT: process.env.PORT,
+      MONGODB_URI: process.env.MONGODB_URI ? 'Set (hidden for security)' : 'Not set',
+      JWT_SECRET: process.env.JWT_SECRET ? 'Set (hidden for security)' : 'Not set'
+    }
+  });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!' });
+  console.error('Error:', err.message);
+  console.error('Stack:', err.stack);
+  res.status(500).json({ message: 'Something went wrong!', error: err.message });
 });
 
-// Start server with error handling
-const server = app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-})
-.on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
-    console.error(`Port ${PORT} is already in use. Please use a different port or stop the other process.`);
-    process.exit(1);
-  } else {
-    console.error('Server error:', err);
-    process.exit(1);
-  }
-});
-
-// Handle server shutdown gracefully
-process.on('SIGTERM', () => {
-  console.info('SIGTERM signal received');
-  console.log('Closing server');
-  server.close(() => {
-    console.log('Server closed');
-    mongoose.connection.close(false, () => {
-      console.log('MongoDB connection closed');
-      process.exit(0);
-    });
+// For local development
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
   });
-});
+}
 
-process.on('SIGINT', () => {
-  console.info('SIGINT signal received');
-  console.log('Closing server');
-  server.close(() => {
-    console.log('Server closed');
-    mongoose.connection.close(false, () => {
-      console.log('MongoDB connection closed');
-      process.exit(0);
-    });
-  });
-});
+// Export for Vercel
+module.exports = app;
