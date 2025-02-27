@@ -42,7 +42,8 @@ const CourseSchema = new mongoose.Schema({
   timeEnd: String,
   targetClasses: String,
   maxParticipants: Number,
-  isActive: { type: Boolean, default: true }
+  isActive: { type: Boolean, default: true },
+  status: String
 });
 
 // Define Registration schema
@@ -148,6 +149,152 @@ app.get('/api/test-data', async (req, res) => {
   } catch (error) {
     console.error('Error creating test data:', error);
     res.status(500).json({ error: 'Failed to create test data' });
+  }
+});
+
+app.get('/api/create-courses', async (req, res) => {
+  try {
+    await connectToDatabase();
+    const Course = mongoose.models.Course || mongoose.model('Course', CourseSchema);
+    
+    // Check if courses exist
+    const courseCount = await Course.countDocuments();
+    
+    if (courseCount === 0) {
+      console.log('No courses found, creating courses from data...');
+      
+      // Create courses based on the image data
+      const courses = [
+        {
+          title: 'TENNIS',
+          description: 'Tenniskurs für Schüler der 4.-9. Klasse',
+          teacher: 'Hubert Anderhub, Nicole Egli',
+          location: 'Tennisplatz Muri',
+          startDate: new Date('2025-02-12'),
+          endDate: new Date('2025-06-30'),
+          dayOfWeek: 'Mittwoch',
+          timeStart: '13:00',
+          timeEnd: '17:00',
+          targetClasses: '4.-9. Klasse',
+          maxParticipants: 48,
+          isActive: true,
+          status: 'Angebot findet statt'
+        },
+        {
+          title: 'TISCHTENNIS',
+          description: 'Tischtenniskurs für Schüler der 4.-9. Klasse',
+          teacher: 'Martin Schneider',
+          location: 'Badweiher',
+          startDate: new Date('2025-02-13'),
+          endDate: new Date('2025-06-30'),
+          dayOfWeek: 'Donnerstag',
+          timeStart: '17:00',
+          timeEnd: '18:00',
+          targetClasses: '4.-9. Klasse',
+          maxParticipants: 14,
+          isActive: true,
+          status: 'Angebot findet statt'
+        },
+        {
+          title: 'SCHWINGEN',
+          description: 'Schwingkurs für Schüler der 1.-9. Klasse',
+          teacher: 'Yanick Klausner',
+          location: 'Schwinghalle Aristau',
+          startDate: new Date('2025-02-13'),
+          endDate: new Date('2025-06-30'),
+          dayOfWeek: 'Donnerstag',
+          timeStart: '18:00',
+          timeEnd: '19:00',
+          targetClasses: '1.-9. Klasse',
+          maxParticipants: 12,
+          isActive: false,
+          status: 'Angebot findet nicht statt'
+        },
+        {
+          title: 'RINGEN',
+          description: 'Ringkurs für Schüler der 1.-9. Klasse',
+          teacher: 'Adi Bucher',
+          location: 'Turnhalle Rösslimatt',
+          startDate: new Date('2025-02-10'),
+          endDate: new Date('2025-06-30'),
+          dayOfWeek: 'Montag',
+          timeStart: '16:00',
+          timeEnd: '17:00',
+          targetClasses: '1.-9. Klasse',
+          maxParticipants: 16,
+          isActive: true,
+          status: 'Angebot findet statt'
+        },
+        {
+          title: 'VOLLEYBALL',
+          description: 'Volleyballkurs für Schüler der 7.-9. Klasse',
+          teacher: 'Nathanael Schärer',
+          location: 'Bachmatten',
+          startDate: new Date('2025-02-17'),
+          endDate: new Date('2025-06-30'),
+          dayOfWeek: 'Montag',
+          timeStart: '12:15',
+          timeEnd: '13:15',
+          targetClasses: '7.-9. Klasse',
+          maxParticipants: 24,
+          isActive: false,
+          status: 'Angebot findet nicht statt'
+        },
+        {
+          title: 'MOUNTAINBIKE',
+          description: 'Kurs von Frühlings- bis Herbstferien, eigenes Bike mitbringen',
+          teacher: 'Nathanael Schärer',
+          location: 'Bachmatten',
+          startDate: new Date('2025-04-23'),
+          endDate: new Date('2025-10-30'),
+          dayOfWeek: 'Mittwoch',
+          timeStart: '15:30',
+          timeEnd: '16:30',
+          targetClasses: '7.-9. Klasse',
+          maxParticipants: 12,
+          isActive: true,
+          status: 'Nachmeldung offen bis Ende März'
+        },
+        {
+          title: 'BMX (Einsteigerinnen)',
+          description: 'Kurs von Frühlings- bis Herbstferien, eigenes Bike mitbringen',
+          teacher: 'Stephanie Rohr',
+          location: 'Pumptrack Bachmatten',
+          startDate: new Date('2025-04-24'),
+          endDate: new Date('2025-10-30'),
+          dayOfWeek: 'Donnerstag',
+          timeStart: '16:00',
+          timeEnd: '17:00',
+          targetClasses: '3.-9. Klasse (ab 10 Jahren)',
+          maxParticipants: 8,
+          isActive: true,
+          status: 'Angebot findet statt'
+        },
+        {
+          title: 'BMX (Fortgeschrittene)',
+          description: 'Kurs von Frühlings- bis Herbstferien, eigenes Bike mitbringen',
+          teacher: 'Stephanie Rohr',
+          location: 'Pumptrack Bachmatten',
+          startDate: new Date('2025-04-24'),
+          endDate: new Date('2025-10-30'),
+          dayOfWeek: 'Donnerstag',
+          timeStart: '17:00',
+          timeEnd: '18:00',
+          targetClasses: '3.-9. Klasse (ab 10 Jahren)',
+          maxParticipants: 8,
+          isActive: true,
+          status: 'Nachmeldung offen bis Ende März'
+        }
+      ];
+      
+      await Course.insertMany(courses);
+      res.json({ message: 'Courses created successfully', count: courses.length });
+    } else {
+      res.json({ message: `Found ${courseCount} existing courses` });
+    }
+  } catch (err) {
+    console.error('Error creating courses:', err);
+    res.status(500).json({ error: 'Failed to create courses' });
   }
 });
 
