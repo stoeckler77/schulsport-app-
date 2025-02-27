@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Course = require('../models/Course');
-const { authMiddleware } = require('../middleware/auth');
+const auth = require('../middleware/auth');
 
 // Get all courses
 router.get('/', async (req, res) => {
@@ -9,101 +9,140 @@ router.get('/', async (req, res) => {
     const courses = await Course.find().sort({ startDate: 1 });
     res.json(courses);
   } catch (err) {
-    console.error('Error fetching courses:', err);
-    res.status(500).json({ message: 'Server error' });
+    console.error(err.message);
+    res.status(500).send('Server error');
   }
 });
 
-// Get a single course
+// Get a specific course
 router.get('/:id', async (req, res) => {
   try {
     const course = await Course.findById(req.params.id);
+    
     if (!course) {
       return res.status(404).json({ message: 'Course not found' });
     }
+    
     res.json(course);
   } catch (err) {
-    console.error('Error fetching course:', err);
-    res.status(500).json({ message: 'Server error' });
+    console.error(err.message);
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ message: 'Course not found' });
+    }
+    res.status(500).send('Server error');
   }
 });
 
-// Create a new course (protected)
-router.post('/', authMiddleware, async (req, res) => {
+// Create a new course (admin only)
+router.post('/', auth, async (req, res) => {
   try {
-    console.log('Creating course with data:', req.body);
-    const newCourse = new Course(req.body);
+    const {
+      title,
+      description,
+      teacher,
+      location,
+      startDate,
+      endDate,
+      dayOfWeek,
+      timeStart,
+      timeEnd,
+      targetClasses,
+      maxParticipants,
+      isActive
+    } = req.body;
+    
+    const newCourse = new Course({
+      title,
+      description,
+      teacher,
+      location,
+      startDate,
+      endDate,
+      dayOfWeek,
+      timeStart,
+      timeEnd,
+      targetClasses,
+      maxParticipants,
+      isActive
+    });
+    
     const course = await newCourse.save();
-    res.status(201).json(course);
-  } catch (err) {
-    console.error('Error creating course:', err);
-    if (err.name === 'ValidationError') {
-      return res.status(400).json({ message: 'Validation error', errors: err.errors });
-    }
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Update a course (protected)
-router.put('/:id', authMiddleware, async (req, res) => {
-  try {
-    console.log('Updating course with ID:', req.params.id);
-    console.log('Update data:', req.body);
-    
-    const course = await Course.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
-    
-    if (!course) {
-      return res.status(404).json({ message: 'Course not found' });
-    }
     
     res.json(course);
   } catch (err) {
-    console.error('Error updating course:', err);
-    if (err.name === 'ValidationError') {
-      return res.status(400).json({ message: 'Validation error', errors: err.errors });
-    }
-    res.status(500).json({ message: 'Server error' });
+    console.error(err.message);
+    res.status(500).send('Server error');
   }
 });
 
-// Update course status (protected)
-router.patch('/:id', authMiddleware, async (req, res) => {
+// Update a course (admin only)
+router.put('/:id', auth, async (req, res) => {
   try {
-    const course = await Course.findByIdAndUpdate(
-      req.params.id,
-      { $set: req.body },
-      { new: true, runValidators: true }
-    );
+    const course = await Course.findById(req.params.id);
     
     if (!course) {
       return res.status(404).json({ message: 'Course not found' });
     }
+    
+    const {
+      title,
+      description,
+      teacher,
+      location,
+      startDate,
+      endDate,
+      dayOfWeek,
+      timeStart,
+      timeEnd,
+      targetClasses,
+      maxParticipants,
+      isActive
+    } = req.body;
+    
+    // Update fields
+    if (title) course.title = title;
+    if (description) course.description = description;
+    if (teacher) course.teacher = teacher;
+    if (location) course.location = location;
+    if (startDate) course.startDate = startDate;
+    if (endDate) course.endDate = endDate;
+    if (dayOfWeek) course.dayOfWeek = dayOfWeek;
+    if (timeStart) course.timeStart = timeStart;
+    if (timeEnd) course.timeEnd = timeEnd;
+    if (targetClasses) course.targetClasses = targetClasses;
+    if (maxParticipants) course.maxParticipants = maxParticipants;
+    if (isActive !== undefined) course.isActive = isActive;
+    
+    await course.save();
     
     res.json(course);
   } catch (err) {
-    console.error('Error updating course status:', err);
-    if (err.name === 'ValidationError') {
-      return res.status(400).json({ message: 'Validation error', errors: err.errors });
+    console.error(err.message);
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ message: 'Course not found' });
     }
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).send('Server error');
   }
 });
 
-// Delete a course (protected)
-router.delete('/:id', authMiddleware, async (req, res) => {
+// Delete a course (admin only)
+router.delete('/:id', auth, async (req, res) => {
   try {
-    const course = await Course.findByIdAndDelete(req.params.id);
+    const course = await Course.findById(req.params.id);
+    
     if (!course) {
       return res.status(404).json({ message: 'Course not found' });
     }
-    res.json({ message: 'Course deleted successfully' });
+    
+    await course.remove();
+    
+    res.json({ message: 'Course removed' });
   } catch (err) {
-    console.error('Error deleting course:', err);
-    res.status(500).json({ message: 'Server error' });
+    console.error(err.message);
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ message: 'Course not found' });
+    }
+    res.status(500).send('Server error');
   }
 });
 

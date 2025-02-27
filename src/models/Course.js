@@ -5,15 +5,15 @@ const CourseSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  emoji: {
-    type: String,
-    default: '🏃‍♂️'
-  },
-  targetGroup: {
+  description: {
     type: String,
     required: true
   },
-  schedule: {
+  teacher: {
+    type: String,
+    required: true
+  },
+  location: {
     type: String,
     required: true
   },
@@ -21,20 +21,29 @@ const CourseSchema = new mongoose.Schema({
     type: Date,
     required: true
   },
-  location: {
+  endDate: {
+    type: Date,
+    required: true
+  },
+  dayOfWeek: {
     type: String,
     required: true
   },
-  instructor: {
+  timeStart: {
+    type: String,
+    required: true
+  },
+  timeEnd: {
+    type: String,
+    required: true
+  },
+  targetClasses: {
     type: String,
     required: true
   },
   maxParticipants: {
     type: Number,
     required: true
-  },
-  notes: {
-    type: String
   },
   isActive: {
     type: Boolean,

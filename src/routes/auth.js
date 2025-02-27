@@ -41,16 +41,16 @@ router.post('/register', async (req, res) => {
     
     jwt.sign(
       payload,
-      process.env.JWT_SECRET || 'your_jwt_secret',
-      { expiresIn: '1d' },
+      process.env.JWT_SECRET || 'defaultsecret',
+      { expiresIn: '1h' },
       (err, token) => {
         if (err) throw err;
         res.json({ token });
       }
     );
   } catch (err) {
-    console.error('Error in register:', err);
-    res.status(500).json({ message: 'Server error' });
+    console.error(err.message);
+    res.status(500).send('Server error');
   }
 });
 
@@ -59,20 +59,17 @@ router.post('/register', async (req, res) => {
 // @access  Public
 router.post('/login', async (req, res) => {
   try {
-    console.log('Login attempt with:', req.body);
     const { email, password } = req.body;
     
     // Check if user exists
     const user = await User.findOne({ email });
     if (!user) {
-      console.log('User not found:', email);
       return res.status(400).json({ message: 'Invalid credentials' });
     }
     
     // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      console.log('Password does not match for user:', email);
       return res.status(400).json({ message: 'Invalid credentials' });
     }
     
@@ -85,17 +82,16 @@ router.post('/login', async (req, res) => {
     
     jwt.sign(
       payload,
-      process.env.JWT_SECRET || 'your_jwt_secret',
-      { expiresIn: '1d' },
+      process.env.JWT_SECRET || 'defaultsecret',
+      { expiresIn: '1h' },
       (err, token) => {
         if (err) throw err;
-        console.log('Login successful for user:', email);
         res.json({ token });
       }
     );
   } catch (err) {
-    console.error('Error in login:', err);
-    res.status(500).json({ message: 'Server error' });
+    console.error(err.message);
+    res.status(500).send('Server error');
   }
 });
 
