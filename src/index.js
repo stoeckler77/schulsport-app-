@@ -6,11 +6,28 @@ const authRoutes = require('./routes/auth');
 const courseRoutes = require('./routes/courses');
 const registrationRoutes = require('./routes/registrations');
 
+// Load environment variables
 dotenv.config();
+
+// Check for required environment variables
+if (!process.env.MONGODB_URI) {
+  console.error('FATAL ERROR: MONGODB_URI environment variable is not defined');
+  // In production, we'll let the process exit with an error
+  // In development, we'll use a fallback for convenience
+  if (process.env.NODE_ENV === 'production') {
+    process.exit(1);
+  } else {
+    console.warn('Using fallback local MongoDB URI for development');
+    process.env.MONGODB_URI = 'mongodb://localhost:27017/schulsport';
+  }
+}
 
 const app = express();
 // Use environment variable for port with fallback
 const PORT = process.env.PORT || 3000;
+
+console.log('Attempting to start server on port:', PORT);
+console.log('MongoDB URI is defined:', !!process.env.MONGODB_URI);
 
 // Configure CORS to allow requests from anywhere (you can restrict this later)
 app.use(cors({
@@ -21,11 +38,13 @@ app.use(cors({
 app.use(express.json());
 
 // Connect to MongoDB using environment variable
+console.log('Attempting to connect to MongoDB...');
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('MongoDB connected'))
+  .then(() => console.log('MongoDB connected successfully'))
   .catch(err => {
     console.error('MongoDB connection error:', err);
-    console.error('Connection string:', process.env.MONGODB_URI ? 'Set (hidden for security)' : 'Not set');
+    console.error('Connection string (first 10 chars):', 
+      process.env.MONGODB_URI ? process.env.MONGODB_URI.substring(0, 10) + '...' : 'Not set');
   });
 
 // Routes
@@ -44,8 +63,8 @@ app.get('/health', (req, res) => {
     status: 'ok',
     mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
     env: {
-      NODE_ENV: process.env.NODE_ENV,
-      PORT: process.env.PORT,
+      NODE_ENV: process.env.NODE_ENV || 'not set',
+      PORT: process.env.PORT || 'not set',
       MONGODB_URI: process.env.MONGODB_URI ? 'Set (hidden for security)' : 'Not set',
       JWT_SECRET: process.env.JWT_SECRET ? 'Set (hidden for security)' : 'Not set'
     }
