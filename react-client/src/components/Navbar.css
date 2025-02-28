@@ -2,12 +2,18 @@
   background-color: #a52a2a !important; /* Maroon color to match the logo */
 }
 
-.logo-image {
-  height: 60px;
+/* Logo styling */
+.logo-container {
+  height: 40px;
   width: auto;
-  max-width: 400px;
-  transition: transform 0.3s ease;
-  max-height: 40px;
+  display: flex;
+  align-items: center;
+}
+
+.logo-image {
+  height: 100%;
+  width: auto;
+  max-width: 150px;
   object-fit: contain;
 }
 
@@ -20,8 +26,8 @@
 }
 
 @media (max-width: 576px) {
-  .logo-image {
-    max-height: 30px;
+  .logo-container {
+    height: 30px;
   }
 }
 

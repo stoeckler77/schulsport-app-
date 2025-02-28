@@ -10,15 +10,16 @@ const Navbar = () => {
   }, []);
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
       <div className="container">
         <Link className="navbar-brand d-flex align-items-center" to="/">
-          <img 
-            src={schuleMuriLogo} 
-            alt="Schule Muri Logo" 
-            className="logo-image me-2"
-            style={{ maxHeight: '40px', width: 'auto' }}
-          />
+          <div className="logo-container me-2">
+            <img 
+              src={schuleMuriLogo} 
+              alt="Schule Muri Logo" 
+              className="logo-image"
+            />
+          </div>
           <span>Schulsport App</span>
         </Link>
         <button 
