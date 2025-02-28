@@ -48,16 +48,18 @@ const CourseSchema = new mongoose.Schema({
 
 // Define Registration schema
 const RegistrationSchema = new mongoose.Schema({
-  course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
-  firstName: String,
-  lastName: String,
-  email: String,
-  phone: String,
-  class: String,
-  parentName: String,
+  courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
+  email: { type: String, required: true },
+  phone: { type: String, required: true },
+  class: { type: String, required: true },
+  ahvNumber: { type: String, required: true },
+  birthDate: { type: Date, required: true },
+  parentName: { type: String, required: true },
+  parentContact: { type: String, required: true },
   comments: String,
-  status: { type: String, default: 'pending' },
-  registeredAt: { type: Date, default: Date.now }
+  registrationDate: { type: Date, default: Date.now }
 });
 
 // Define User schema
