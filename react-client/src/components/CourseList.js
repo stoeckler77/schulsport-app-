@@ -9,12 +9,14 @@ function CourseList() {
   const [connectionError, setConnectionError] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
-  const [formData, setFormData] = useState({
+  const [registrationData, setRegistrationData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     phone: '',
     class: '',
+    ahvNumber: '',
+    birthDate: '',
     parentName: '',
     comments: ''
   });
@@ -54,12 +56,14 @@ function CourseList() {
     setShowRegistrationForm(true);
     setRegistrationSuccess(false);
     // Reset form data
-    setFormData({
+    setRegistrationData({
       firstName: '',
       lastName: '',
       email: '',
       phone: '',
       class: '',
+      ahvNumber: '',
+      birthDate: '',
       parentName: '',
       comments: ''
     });
@@ -72,8 +76,8 @@ function CourseList() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    setRegistrationData({
+      ...registrationData,
       [name]: value
     });
   };
@@ -85,7 +89,7 @@ function CourseList() {
       // Send registration data to the backend
       const response = await api.post('/api/registrations', {
         course: selectedCourse._id,
-        ...formData
+        ...registrationData
       });
       
       console.log('Registration submitted:', response.data);
@@ -94,12 +98,14 @@ function CourseList() {
       setRegistrationSuccess(true);
       
       // Reset form
-      setFormData({
+      setRegistrationData({
         firstName: '',
         lastName: '',
         email: '',
         phone: '',
         class: '',
+        ahvNumber: '',
+        birthDate: '',
         parentName: '',
         comments: ''
       });
@@ -244,7 +250,7 @@ function CourseList() {
                         type="text"
                         id="firstName"
                         name="firstName"
-                        value={formData.firstName}
+                        value={registrationData.firstName}
                         onChange={handleInputChange}
                         required
                       />
@@ -256,7 +262,7 @@ function CourseList() {
                         type="text"
                         id="lastName"
                         name="lastName"
-                        value={formData.lastName}
+                        value={registrationData.lastName}
                         onChange={handleInputChange}
                         required
                       />
@@ -270,7 +276,7 @@ function CourseList() {
                         type="email"
                         id="email"
                         name="email"
-                        value={formData.email}
+                        value={registrationData.email}
                         onChange={handleInputChange}
                         required
                       />
@@ -282,7 +288,7 @@ function CourseList() {
                         type="tel"
                         id="phone"
                         name="phone"
-                        value={formData.phone}
+                        value={registrationData.phone}
                         onChange={handleInputChange}
                         required
                       />
@@ -296,7 +302,38 @@ function CourseList() {
                         type="text"
                         id="class"
                         name="class"
-                        value={formData.class}
+                        value={registrationData.class}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                    
+                    <div className="form-group">
+                      <label htmlFor="ahvNumber">
+                        <span role="img" aria-label="ID Card">🪪</span> AHV-Nummer*
+                      </label>
+                      <input
+                        type="text"
+                        id="ahvNumber"
+                        name="ahvNumber"
+                        placeholder="756.xxxx.xxxx.xx"
+                        value={registrationData.ahvNumber}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="birthDate">
+                        <span role="img" aria-label="Calendar">📅</span> Geburtsdatum*
+                      </label>
+                      <input
+                        type="date"
+                        id="birthDate"
+                        name="birthDate"
+                        value={registrationData.birthDate}
                         onChange={handleInputChange}
                         required
                       />
@@ -308,7 +345,7 @@ function CourseList() {
                         type="text"
                         id="parentName"
                         name="parentName"
-                        value={formData.parentName}
+                        value={registrationData.parentName}
                         onChange={handleInputChange}
                         required
                       />
@@ -320,7 +357,7 @@ function CourseList() {
                     <textarea
                       id="comments"
                       name="comments"
-                      value={formData.comments}
+                      value={registrationData.comments}
                       onChange={handleInputChange}
                       rows="4"
                     ></textarea>
