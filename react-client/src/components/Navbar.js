@@ -1,14 +1,20 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './Navbar.css'; // Make sure to create this CSS file
+// Import the logo directly from assets
+import schuleMuriLogo from '../assets/schule-muri-logo.png';
 
 const Navbar = () => {
+  useEffect(() => {
+    console.log('Logo path:', schuleMuriLogo);
+  }, []);
+
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
       <div className="container">
         <Link className="navbar-brand d-flex align-items-center" to="/">
           <img 
-            src="/images/schule-muri-logo.png" 
+            src={schuleMuriLogo} 
             alt="Schule Muri Logo" 
             className="logo-image me-2"
           />
