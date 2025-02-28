@@ -60,6 +60,14 @@ const RegistrationSchema = new mongoose.Schema({
   registeredAt: { type: Date, default: Date.now }
 });
 
+// Define User schema
+const UserSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  name: String,
+  role: { type: String, default: 'user' }
+});
+
 // Define routes
 app.get('/', async (req, res) => {
   try {
@@ -312,6 +320,104 @@ app.post('/api/registrations', async (req, res) => {
   } catch (error) {
     console.error('Error creating registration:', error);
     res.status(500).json({ error: 'Failed to create registration' });
+  }
+});
+
+// Login endpoint
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    await connectToDatabase();
+    const User = mongoose.models.User || mongoose.model('User', UserSchema);
+    
+    const { email, password } = req.body;
+    
+    // Find user by email
+    const user = await User.findOne({ email });
+    
+    // If user doesn't exist or password doesn't match
+    if (!user || user.password !== password) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    
+    // Return user info (in a real app, you'd return a JWT token)
+    res.status(200).json({
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Login failed' });
+  }
+});
+
+// Register endpoint
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    await connectToDatabase();
+    const User = mongoose.models.User || mongoose.model('User', UserSchema);
+    
+    const { email, password, name } = req.body;
+    
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: 'User already exists' });
+    }
+    
+    // Create new user
+    const newUser = new User({
+      email,
+      password, // In a real app, you'd hash this password
+      name,
+      role: 'user'
+    });
+    
+    await newUser.save();
+    
+    res.status(201).json({
+      user: {
+        id: newUser._id,
+        email: newUser.email,
+        name: newUser.name,
+        role: newUser.role
+      }
+    });
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({ error: 'Registration failed' });
+  }
+});
+
+// Create test user endpoint
+app.get('/api/auth/create-test-user', async (req, res) => {
+  try {
+    await connectToDatabase();
+    const User = mongoose.models.User || mongoose.model('User', UserSchema);
+    
+    // Check if test user exists
+    const existingUser = await User.findOne({ email: 'admin@example.com' });
+    
+    if (!existingUser) {
+      // Create test admin user
+      const testUser = new User({
+        email: 'admin@example.com',
+        password: 'password123',
+        name: 'Admin User',
+        role: 'admin'
+      });
+      
+      await testUser.save();
+      res.json({ message: 'Test user created successfully' });
+    } else {
+      res.json({ message: 'Test user already exists' });
+    }
+  } catch (error) {
+    console.error('Error creating test user:', error);
+    res.status(500).json({ error: 'Failed to create test user' });
   }
 });
 
