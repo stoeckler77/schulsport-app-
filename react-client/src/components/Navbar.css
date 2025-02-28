@@ -5,16 +5,13 @@
 /* Logo styling */
 .logo-container {
   height: 40px;
-  width: auto;
   display: flex;
   align-items: center;
 }
 
-.logo-image {
+.logo-svg {
   height: 100%;
   width: auto;
-  max-width: 150px;
-  object-fit: contain;
 }
 
 /* For smaller screens */
