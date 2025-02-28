@@ -11,8 +11,7 @@ const Navbar = () => {
           <img 
             src={schuleMuriLogo} 
             alt="Schule Muri Logo" 
-            height="50" 
-            className="me-2"
+            className="logo-image me-2"
           />
           <span>Schulsport App</span>
         </Link>

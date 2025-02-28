@@ -2,11 +2,21 @@
   background-color: #a52a2a !important; /* Maroon color to match the logo */
 }
 
-.navbar-brand img {
-  max-height: 50px;
+.logo-image {
+  height: 60px;
+  width: auto;
+  max-width: 400px;
   transition: transform 0.3s ease;
 }
 
-.navbar-brand:hover img {
+/* For smaller screens */
+@media (max-width: 768px) {
+  .logo-image {
+    height: 40px;
+    max-width: 280px;
+  }
+}
+
+.navbar-brand:hover .logo-image {
   transform: scale(1.05);
 } 
