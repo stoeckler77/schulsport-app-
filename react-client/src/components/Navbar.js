@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import './Navbar.css'; // Make sure to create this CSS file
-import schuleMuriLogo from '../assets/schule-muri-logo.png'; // Import the logo directly
 
 const Navbar = () => {
   return (
@@ -9,7 +8,7 @@ const Navbar = () => {
       <div className="container">
         <Link className="navbar-brand d-flex align-items-center" to="/">
           <img 
-            src={schuleMuriLogo} 
+            src="/images/schule-muri-logo.png" 
             alt="Schule Muri Logo" 
             className="logo-image me-2"
           />
