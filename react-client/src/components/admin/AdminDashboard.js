@@ -271,47 +271,44 @@ function AdminDashboard() {
             </table>
           </div>
 
-          <div className="mt-4">
-            <h3>Kursanmeldungen anzeigen</h3>
-            <div className="list-group">
+          <div className="mt-4 mb-5">
+            <h3 className="mb-3">
+              <i className="bi bi-people-fill me-2"></i>
+              Kursanmeldungen anzeigen
+            </h3>
+            
+            <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
               {courses && courses.map(course => (
-                <Link 
-                  key={course._id}
-                  to={`/admin/courses/${course._id}/registrations`}
-                  className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-                >
-                  {course.title}
-                  <span className="badge bg-primary rounded-pill">
-                    <i className="bi bi-people me-1"></i>
-                    Anmeldungen
-                  </span>
-                </Link>
+                <div key={course._id} className="col">
+                  <div className="card h-100 border-primary">
+                    <div className="card-header bg-primary text-white">
+                      <h5 className="card-title mb-0">{course.title}</h5>
+                    </div>
+                    <div className="card-body">
+                      <p className="card-text">
+                        <strong>Leitung:</strong> {course.teacher || 'Nicht angegeben'}
+                      </p>
+                      <p className="card-text">
+                        <strong>Tag:</strong> {course.dayOfWeek || 'Nicht angegeben'}
+                      </p>
+                      <p className="card-text">
+                        <strong>Zeit:</strong> {course.timeStart} - {course.timeEnd}
+                      </p>
+                    </div>
+                    <div className="card-footer bg-transparent border-top">
+                      <button 
+                        className="btn btn-primary w-100"
+                        onClick={() => fetchRegistrations(course._id)}
+                      >
+                        <i className="bi bi-list-ul me-2"></i>
+                        Anmeldungen anzeigen
+                      </button>
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
-
-          <button 
-            className="btn btn-secondary mb-3"
-            onClick={() => {
-              // Fetch courses and log their IDs
-              const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000';
-              fetch(`${apiUrl}/api/courses`)
-                .then(response => response.json())
-                .then(courses => {
-                  console.log('Course IDs:');
-                  courses.forEach(course => {
-                    console.log(`${course.title}: ${course._id}`);
-                  });
-                  alert('Course IDs logged to console. Press F12 to view.');
-                })
-                .catch(error => {
-                  console.error('Error fetching courses:', error);
-                  alert('Error fetching courses. Check console for details.');
-                });
-            }}
-          >
-            Debug: Show Course IDs
-          </button>
 
           <div className="mt-5">
             <h2>
