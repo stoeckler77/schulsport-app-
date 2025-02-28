@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './Navbar.css'; // Make sure to create this CSS file
 // Import the logo directly from assets
-import schuleMuriLogo from '../assets/schule-muri-logo.png';
+// import schuleMuriLogo from '../assets/schule-muri-logo.png';
 
 const Navbar = () => {
   useEffect(() => {
@@ -15,7 +15,7 @@ const Navbar = () => {
         <Link className="navbar-brand d-flex align-items-center" to="/">
           <div className="logo-container me-2">
             <img 
-              src={schuleMuriLogo} 
+              src="https://www.schule-muri.ch/custom/images/logo.png" 
               alt="Schule Muri Logo" 
               className="logo-image"
             />
