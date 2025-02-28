@@ -17,10 +17,19 @@ const Navbar = () => {
             src={schuleMuriLogo} 
             alt="Schule Muri Logo" 
             className="logo-image me-2"
+            style={{ maxHeight: '40px', width: 'auto' }}
           />
           <span>Schulsport App</span>
         </Link>
-        <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <button 
+          className="navbar-toggler" 
+          type="button" 
+          data-bs-toggle="collapse" 
+          data-bs-target="#navbarNav" 
+          aria-controls="navbarNav" 
+          aria-expanded="false" 
+          aria-label="Toggle navigation"
+        >
           <span className="navbar-toggler-icon"></span>
         </button>
         <div className="collapse navbar-collapse" id="navbarNav">
