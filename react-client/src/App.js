@@ -5,6 +5,7 @@ import Login from './components/Login';
 import CourseList from './components/CourseList';
 import AdminDashboard from './components/admin/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
+import CourseRegistrations from './components/admin/CourseRegistrations';
 
 function App() {
   return (
@@ -67,6 +68,7 @@ function App() {
                 <AdminDashboard />
               </ProtectedRoute>
             } />
+            <Route path="/admin/courses/:id/registrations" element={<CourseRegistrations />} />
           </Routes>
         </main>
         

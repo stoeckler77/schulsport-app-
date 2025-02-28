@@ -625,6 +625,18 @@ app.get('/api/create-image-courses', async (req, res) => {
   }
 });
 
+// Add this route to your API routes
+app.get('/api/registrations/course/:courseId', async (req, res) => {
+  try {
+    const registrations = await Registration.find({ courseId: req.params.courseId })
+      .sort({ registrationDate: -1 });
+    res.json(registrations);
+  } catch (error) {
+    console.error('Error fetching registrations:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err);

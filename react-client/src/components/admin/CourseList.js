@@ -42,7 +42,13 @@
         </span>
       </td>
       <td>
-        {/* Action buttons */}
+        <Link 
+          to={`/admin/courses/${course._id}/registrations`} 
+          className="btn btn-info btn-sm me-2" 
+          title="Anmeldungen anzeigen"
+        >
+          <i className="bi bi-people"></i>
+        </Link>
       </td>
     </tr>
   ))}
