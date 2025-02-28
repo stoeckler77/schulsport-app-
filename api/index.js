@@ -31,19 +31,20 @@ const connectToDatabase = async () => {
 
 // Define Course schema
 const CourseSchema = new mongoose.Schema({
-  title: String,
+  title: { type: String, required: true },
   description: String,
   teacher: String,
   location: String,
-  startDate: Date,
-  endDate: Date,
+  startDate: { type: Date, required: true },
+  endDate: { type: Date, required: true },
   dayOfWeek: String,
   timeStart: String,
   timeEnd: String,
   targetClasses: String,
   maxParticipants: Number,
   isActive: { type: Boolean, default: true },
-  status: String
+  status: { type: String, default: 'Angebot findet statt' },
+  notes: String
 });
 
 // Define Registration schema
