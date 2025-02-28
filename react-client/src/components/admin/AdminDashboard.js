@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import api from '../../utils/apiClient';
 import { isAuthenticated, removeToken } from '../../utils/auth';
 import CourseForm from './CourseForm';
@@ -248,6 +248,48 @@ function AdminDashboard() {
               </tbody>
             </table>
           </div>
+
+          <div className="mt-4">
+            <h3>Kursanmeldungen anzeigen</h3>
+            <div className="list-group">
+              {courses && courses.map(course => (
+                <Link 
+                  key={course._id}
+                  to={`/admin/courses/${course._id}/registrations`}
+                  className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                >
+                  {course.title}
+                  <span className="badge bg-primary rounded-pill">
+                    <i className="bi bi-people me-1"></i>
+                    Anmeldungen
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <button 
+            className="btn btn-secondary mb-3"
+            onClick={() => {
+              // Fetch courses and log their IDs
+              const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+              fetch(`${apiUrl}/api/courses`)
+                .then(response => response.json())
+                .then(courses => {
+                  console.log('Course IDs:');
+                  courses.forEach(course => {
+                    console.log(`${course.title}: ${course._id}`);
+                  });
+                  alert('Course IDs logged to console. Press F12 to view.');
+                })
+                .catch(error => {
+                  console.error('Error fetching courses:', error);
+                  alert('Error fetching courses. Check console for details.');
+                });
+            }}
+          >
+            Debug: Show Course IDs
+          </button>
         </>
       )}
 
