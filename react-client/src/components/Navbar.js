@@ -9,23 +9,9 @@ const Navbar = () => {
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
       <div className="container">
         <Link className="navbar-brand d-flex align-items-center" to="/">
-          {/* Inline SVG logo based on the red Schule Muri logo */}
-          <div className="logo-container me-2">
-            <svg 
-              width="150" 
-              height="40" 
-              viewBox="0 0 400 100" 
-              xmlns="http://www.w3.org/2000/svg"
-              className="logo-svg"
-            >
-              <rect width="400" height="100" fill="#c1121f" />
-              <path d="M50,20 v40 h20 v-20 h20 v-20 h-40" fill="white" />
-              <path d="M90,20 v40 h20 v-20 h20 v-20 h-40" fill="white" />
-              <path d="M130,20 v40 h20 v-20 h20 v-20 h-40" fill="white" />
-              <path d="M170,20 h180 v60 h-350 v-20 h170 v-40" fill="white" />
-              <text x="200" y="40" font-family="Arial" font-size="16" fill="white" text-anchor="middle">SCHULE</text>
-              <text x="240" y="70" font-family="Arial" font-size="24" font-weight="bold" fill="#c1121f" text-anchor="middle">MURI</text>
-            </svg>
+          {/* Text-based logo replacement */}
+          <div className="schule-muri-logo me-2">
+            <div className="logo-text">SCHULE MURI</div>
           </div>
           <span>Schulsport App</span>
         </Link>
