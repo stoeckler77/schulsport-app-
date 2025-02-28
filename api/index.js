@@ -421,6 +421,65 @@ app.get('/api/auth/create-test-user', async (req, res) => {
   }
 });
 
+// Create a new course
+app.post('/api/courses', async (req, res) => {
+  try {
+    await connectToDatabase();
+    const Course = mongoose.models.Course || mongoose.model('Course', CourseSchema);
+    
+    // Create new course
+    const newCourse = new Course(req.body);
+    const course = await newCourse.save();
+    
+    res.status(201).json(course);
+  } catch (error) {
+    console.error('Error creating course:', error);
+    res.status(500).json({ error: 'Failed to create course' });
+  }
+});
+
+// Update an existing course
+app.put('/api/courses/:id', async (req, res) => {
+  try {
+    await connectToDatabase();
+    const Course = mongoose.models.Course || mongoose.model('Course', CourseSchema);
+    
+    const course = await Course.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    
+    if (!course) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+    
+    res.status(200).json(course);
+  } catch (error) {
+    console.error('Error updating course:', error);
+    res.status(500).json({ error: 'Failed to update course' });
+  }
+});
+
+// Delete a course
+app.delete('/api/courses/:id', async (req, res) => {
+  try {
+    await connectToDatabase();
+    const Course = mongoose.models.Course || mongoose.model('Course', CourseSchema);
+    
+    const course = await Course.findByIdAndDelete(req.params.id);
+    
+    if (!course) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+    
+    res.status(200).json({ message: 'Course deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting course:', error);
+    res.status(500).json({ error: 'Failed to delete course' });
+  }
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err);
