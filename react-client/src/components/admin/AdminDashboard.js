@@ -26,6 +26,17 @@ function AdminDashboard() {
     fetchCourses();
   }, [navigate]);
 
+  useEffect(() => {
+    // Add Bootstrap Icons if not already present
+    if (!document.getElementById('bootstrap-icons')) {
+      const link = document.createElement('link');
+      link.id = 'bootstrap-icons';
+      link.rel = 'stylesheet';
+      link.href = 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css';
+      document.head.appendChild(link);
+    }
+  }, []);
+
   const fetchCurrentUser = async () => {
     try {
       const response = await api.get('/api/auth/me');
@@ -239,6 +250,37 @@ function AdminDashboard() {
           </div>
         </>
       )}
+
+      <style>
+        {`
+          .input-group-text {
+            background-color: #f8f9fa;
+            border-right: none;
+          }
+          
+          .input-group .form-control {
+            border-left: none;
+          }
+          
+          input[type="date"] {
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+          }
+          
+          .form-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+          }
+          
+          .text-muted {
+            font-size: 0.875rem;
+          }
+          
+          .bi {
+            vertical-align: -0.125em;
+          }
+        `}
+      </style>
     </div>
   );
 }
