@@ -8,7 +8,7 @@ const Navbar = () => {
       <div className="container">
         <Link className="navbar-brand d-flex align-items-center" to="/">
           <img 
-            src="/images/schule-muri-logo.png" 
+            src="/schule-muri-logo.png" 
             alt="Schule Muri Logo" 
             height="50" 
             className="me-2"
