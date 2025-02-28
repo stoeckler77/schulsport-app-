@@ -4,6 +4,7 @@ import api from '../../utils/apiClient';
 import { isAuthenticated, removeToken } from '../../utils/auth';
 import CourseForm from './CourseForm';
 import './AdminDashboard.css';
+import axios from 'axios';
 
 function AdminDashboard() {
   const [courses, setCourses] = useState([]);
@@ -12,6 +13,9 @@ function AdminDashboard() {
   const [currentUser, setCurrentUser] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [currentCourse, setCurrentCourse] = useState(null);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [registrations, setRegistrations] = useState([]);
+  const [loadingRegistrations, setLoadingRegistrations] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -160,6 +164,24 @@ function AdminDashboard() {
     }
   };
 
+  const fetchRegistrations = async (courseId) => {
+    setLoadingRegistrations(true);
+    try {
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+      const response = await axios.get(`${apiUrl}/api/registrations/course/${courseId}`);
+      setRegistrations(response.data);
+      
+      // Find the selected course details
+      const course = courses.find(c => c._id === courseId);
+      setSelectedCourse(course);
+      
+      setLoadingRegistrations(false);
+    } catch (error) {
+      console.error('Error fetching registrations:', error);
+      setLoadingRegistrations(false);
+    }
+  };
+
   if (loading) return <div className="loading">Loading dashboard...</div>;
 
   return (
@@ -290,6 +312,141 @@ function AdminDashboard() {
           >
             Debug: Show Course IDs
           </button>
+
+          <div className="mt-5">
+            <h2>
+              <i className="bi bi-people-fill me-2"></i>
+              Kursanmeldungen
+            </h2>
+            
+            <div className="card mb-4">
+              <div className="card-header bg-primary text-white">
+                <h5 className="mb-0">Kurs auswählen</h5>
+              </div>
+              <div className="card-body">
+                <select 
+                  className="form-select mb-3"
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      fetchRegistrations(e.target.value);
+                    } else {
+                      setSelectedCourse(null);
+                      setRegistrations([]);
+                    }
+                  }}
+                  defaultValue=""
+                >
+                  <option value="">-- Kurs auswählen --</option>
+                  {courses.map(course => (
+                    <option key={course._id} value={course._id}>
+                      {course.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            
+            {selectedCourse && (
+              <div className="card mb-4">
+                <div className="card-header bg-primary text-white">
+                  <h5 className="mb-0">Kursdetails: {selectedCourse.title}</h5>
+                </div>
+                <div className="card-body">
+                  <div className="row">
+                    <div className="col-md-6">
+                      <p><strong>Titel:</strong> {selectedCourse.title}</p>
+                      <p><strong>Leitung:</strong> {selectedCourse.teacher}</p>
+                      <p><strong>Ort:</strong> {selectedCourse.location}</p>
+                    </div>
+                    <div className="col-md-6">
+                      <p>
+                        <strong>Zeitraum:</strong> {selectedCourse.startDate ? new Date(selectedCourse.startDate).toLocaleDateString('de-CH') : ''} - {selectedCourse.endDate ? new Date(selectedCourse.endDate).toLocaleDateString('de-CH') : ''}
+                      </p>
+                      <p><strong>Tag & Zeit:</strong> {selectedCourse.dayOfWeek}, {selectedCourse.timeStart} - {selectedCourse.timeEnd}</p>
+                      <p>
+                        <strong>Status:</strong> 
+                        <span className={`badge ms-2 ${selectedCourse.status === 'Angebot findet statt' ? 'bg-success' : selectedCourse.status === 'Angebot findet nicht statt' ? 'bg-danger' : 'bg-warning'}`}>
+                          {selectedCourse.status}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {loadingRegistrations && (
+              <div className="d-flex justify-content-center my-4">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+              </div>
+            )}
+            
+            {selectedCourse && !loadingRegistrations && (
+              <div className="card">
+                <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                  <h5 className="mb-0">Teilnehmerliste</h5>
+                  <span className="badge bg-light text-dark">
+                    {registrations.length} {registrations.length === 1 ? 'Teilnehmer' : 'Teilnehmer'}
+                  </span>
+                </div>
+                <div className="card-body">
+                  {registrations.length === 0 ? (
+                    <div className="alert alert-info">
+                      <i className="bi bi-info-circle me-2"></i>
+                      Keine Anmeldungen für diesen Kurs vorhanden.
+                    </div>
+                  ) : (
+                    <div className="table-responsive">
+                      <table className="table table-striped table-hover">
+                        <thead className="table-light">
+                          <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Klasse</th>
+                            <th>AHV-Nummer</th>
+                            <th>Geburtsdatum</th>
+                            <th>Kontakt</th>
+                            <th>Eltern</th>
+                            <th>Anmeldedatum</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {registrations.map((registration, index) => (
+                            <tr key={registration._id}>
+                              <td>{index + 1}</td>
+                              <td>
+                                <strong>{registration.firstName} {registration.lastName}</strong>
+                              </td>
+                              <td>{registration.class}</td>
+                              <td>{registration.ahvNumber || '-'}</td>
+                              <td>
+                                {registration.birthDate 
+                                  ? new Date(registration.birthDate).toLocaleDateString('de-CH') 
+                                  : '-'}
+                              </td>
+                              <td>
+                                <div><small><i className="bi bi-envelope me-1"></i>{registration.email}</small></div>
+                                <div><small><i className="bi bi-telephone me-1"></i>{registration.phone}</small></div>
+                              </td>
+                              <td>
+                                <div>{registration.parentName}</div>
+                                <div><small>{registration.parentContact}</small></div>
+                              </td>
+                              <td>
+                                {new Date(registration.registrationDate).toLocaleDateString('de-CH')}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </>
       )}
 
