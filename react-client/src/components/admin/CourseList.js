@@ -16,8 +16,22 @@
     <tr key={course._id}>
       <td>{course.title}</td>
       <td>{course.teacher}</td>
-      <td>{course.startDate ? new Date(course.startDate).toLocaleDateString('de-CH') : '-'}</td>
-      <td>{course.endDate ? new Date(course.endDate).toLocaleDateString('de-CH') : '-'}</td>
+      <td>
+        {course.startDate ? (
+          <span className="badge bg-info text-dark">
+            <i className="bi bi-calendar-event me-1"></i>
+            {new Date(course.startDate).toLocaleDateString('de-CH')}
+          </span>
+        ) : '-'}
+      </td>
+      <td>
+        {course.endDate ? (
+          <span className="badge bg-secondary text-white">
+            <i className="bi bi-calendar-check me-1"></i>
+            {new Date(course.endDate).toLocaleDateString('de-CH')}
+          </span>
+        ) : '-'}
+      </td>
       <td>{course.dayOfWeek}</td>
       <td>{course.timeStart} - {course.timeEnd}</td>
       <td>

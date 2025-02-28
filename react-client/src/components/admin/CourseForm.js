@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import './CourseForm.css';
+import './AdminStyles.css';
 
 function CourseForm() {
   const { id } = useParams();
@@ -147,30 +148,46 @@ function CourseForm() {
           </div>
         </div>
 
-        <div className="row">
-          <div className="col-md-6 mb-3">
-            <label htmlFor="startDate" className="form-label">Anfangsdatum *</label>
-            <input
-              type="date"
-              className="form-control"
-              id="startDate"
-              name="startDate"
-              value={course.startDate}
-              onChange={handleChange}
-              required
-            />
+        <div className="row mb-4">
+          <div className="col-md-6">
+            <label htmlFor="startDate" className="form-label fw-bold">
+              <i className="bi bi-calendar-event me-2"></i>Anfangsdatum *
+            </label>
+            <div className="input-group">
+              <span className="input-group-text bg-light">
+                <i className="bi bi-calendar-date"></i>
+              </span>
+              <input
+                type="date"
+                className="form-control form-control-lg"
+                id="startDate"
+                name="startDate"
+                value={course.startDate}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <small className="text-muted">Wann beginnt der Kurs?</small>
           </div>
-          <div className="col-md-6 mb-3">
-            <label htmlFor="endDate" className="form-label">Enddatum *</label>
-            <input
-              type="date"
-              className="form-control"
-              id="endDate"
-              name="endDate"
-              value={course.endDate}
-              onChange={handleChange}
-              required
-            />
+          <div className="col-md-6">
+            <label htmlFor="endDate" className="form-label fw-bold">
+              <i className="bi bi-calendar-check me-2"></i>Enddatum *
+            </label>
+            <div className="input-group">
+              <span className="input-group-text bg-light">
+                <i className="bi bi-calendar-date"></i>
+              </span>
+              <input
+                type="date"
+                className="form-control form-control-lg"
+                id="endDate"
+                name="endDate"
+                value={course.endDate}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <small className="text-muted">Wann endet der Kurs?</small>
           </div>
         </div>
 
